@@ -1,0 +1,29 @@
+{% extends 'layouts/base.twig' %}
+
+{% block body_class %}app-body{% endblock %}
+
+{% block header %}
+<header class="app-bar">
+    <div class="app-bar-inner">
+        <div class="app-brand">
+            <a class="wordmark" href="{{ route('app.home') }}">{{ config('app.name') }}</a>
+            <span class="workspace-name">{{ workspace.name }}</span>
+        </div>
+
+        <nav class="app-nav" aria-label="Workspace">
+            <a href="{{ route('tickets.index') }}"{{ nav == 'tickets' ? ' aria-current="page"' : '' }}>Tickets</a>
+            <a href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>Workspace</a>
+        </nav>
+
+        <div class="app-user">
+            <span class="app-user-name">{{ user.first_name }} {{ user.last_name }}</span>
+            <form method="post" action="{{ route('logout') }}">
+                {{ csrf_field() }}
+                <button class="link-button" type="submit">Sign out</button>
+            </form>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block main_class %}app-main{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}New ticket — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">New request</p>
+        <h1 class="page-title">Create a ticket</h1>
+        <p class="page-lede">Log a request from a guest or staff member. The category decides which team picks it up.</p>
+    </div>
+    <a class="button button-quiet" href="{{ route('tickets.index') }}">Back to tickets</a>
+</div>
+
+<form method="post" action="{{ route('tickets.store') }}" class="ticket-form">
+    {{ csrf_field() }}
+
+    <section class="panel">
+        <h2>Requester</h2>
+        <div class="form-grid">
+            <div class="field">
+                <label for="requester_name">Name</label>
+                <input id="requester_name" name="requester_name" type="text" value="{{ old('requester_name') }}"
+                       maxlength="160" autocomplete="name" required>
+                {% if errors.requester_name is defined %}<p class="field-error">{{ errors.requester_name }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="requester_email">Email</label>
+                <input id="requester_email" name="requester_email" type="email" value="{{ old('requester_email') }}"
+                       maxlength="254" autocomplete="email" required>
+                <p class="field-hint">The confirmation is sent here.</p>
+                {% if errors.requester_email is defined %}<p class="field-error">{{ errors.requester_email }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="requester_phone">Phone <span class="optional">optional</span></label>
+                <input id="requester_phone" name="requester_phone" type="tel" value="{{ old('requester_phone') }}"
+                       maxlength="32" autocomplete="tel">
+                {% if errors.requester_phone is defined %}<p class="field-error">{{ errors.requester_phone }}</p>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Request</h2>
+        <div class="field">
+            <label for="subject">Subject</label>
+            <input id="subject" name="subject" type="text" value="{{ old('subject') }}" maxlength="200" required>
+            {% if errors.subject is defined %}<p class="field-error">{{ errors.subject }}</p>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="6" maxlength="20000" required>{{ old('description') }}</textarea>
+            {% if errors.description is defined %}<p class="field-error">{{ errors.description }}</p>{% endif %}
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Routing</h2>
+        <div class="form-grid">
+            <div class="field">
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id">
+                    <option value="">No category</option>
+                    {% for category in categories %}
+                        {% if category.status == 'active' %}
+                            <option value="{{ category.id }}"{{ old('category_id') == category.id ? ' selected' : '' }}>{{ category.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <p class="field-hint">The category routes the ticket to its team automatically.</p>
+                {% if errors.category_id is defined %}<p class="field-error">{{ errors.category_id }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="team_id">Team</label>
+                <select id="team_id" name="team_id">
+                    <option value="">Use the category team</option>
+                    {% for team in teams %}
+                        {% if team.status == 'active' %}
+                            <option value="{{ team.id }}"{{ old('team_id') == team.id ? ' selected' : '' }}>{{ team.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                {% if errors.team_id is defined %}<p class="field-error">{{ errors.team_id }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="">Use the category default</option>
+                    {% for priority in priorities %}
+                        <option value="{{ priority.code }}"{{ old('priority') == priority.code ? ' selected' : '' }}>{{ priority.label }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.priority is defined %}<p class="field-error">{{ errors.priority }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="site_id">Site <span class="optional">optional</span></label>
+                <select id="site_id" name="site_id">
+                    <option value="">No site</option>
+                    {% for site in sites %}
+                        {% if site.status == 'active' %}
+                            <option value="{{ site.id }}"{{ old('site_id') == site.id ? ' selected' : '' }}>{{ site.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                {% if errors.site_id is defined %}<p class="field-error">{{ errors.site_id }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="due_at">Due <span class="optional">optional</span></label>
+                <input id="due_at" name="due_at" type="datetime-local" value="{{ old('due_at') }}">
+                <p class="field-hint">Leave blank to use the priority target. Times are {{ workspace.timezone }}.</p>
+                {% if errors.due_at is defined %}<p class="field-error">{{ errors.due_at }}</p>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <div class="form-actions">
+        <button class="button" type="submit">Create ticket</button>
+        <a class="button button-quiet" href="{{ route('tickets.index') }}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -7,12 +7,14 @@
     <title>{% block title %}{{ config('app.name') }}{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset('assets/app.css') }}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+    {% block header %}
     <header class="site-header">
         <a class="wordmark" href="{{ route('home') }}">{{ config('app.name') }}</a>
     </header>
+    {% endblock %}
 
-    <main class="site-main">
+    <main class="{% block main_class %}site-main{% endblock %}">
         {% set success = flash('success') %}
         {% set failure = flash('error') %}
         {% if success %}
@@ -24,5 +26,7 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

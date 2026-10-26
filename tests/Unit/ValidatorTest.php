@@ -131,6 +131,28 @@ final class ValidatorTest extends TestCase
         );
     }
 
+    public function test_date_rule_accepts_date_and_datetime_forms(): void
+    {
+        $rules = ['due_at' => 'nullable|date'];
+
+        $this->assertSame([], $this->validator->errors(['due_at' => '2026-10-26'], $rules));
+        $this->assertSame([], $this->validator->errors(['due_at' => '2026-10-26T14:30'], $rules));
+        $this->assertSame([], $this->validator->errors(['due_at' => '2026-10-26 14:30:00'], $rules));
+        $this->assertSame([], $this->validator->errors(['due_at' => '2026-10-26T14:30:00Z'], $rules));
+        $this->assertSame([], $this->validator->errors(['due_at' => '2026-10-26T14:30:00+03:00'], $rules));
+    }
+
+    public function test_date_rule_rejects_free_text_and_impossible_values(): void
+    {
+        $rules = ['due_at' => 'nullable|date'];
+        $message = 'The due at field must be a valid date and time.';
+
+        $this->assertSame($message, $this->validator->errors(['due_at' => 'tomorrow'], $rules)['due_at']);
+        $this->assertSame($message, $this->validator->errors(['due_at' => '26/10/2026'], $rules)['due_at']);
+        $this->assertSame($message, $this->validator->errors(['due_at' => '2026-25-99'], $rules)['due_at']);
+        $this->assertSame($message, $this->validator->errors(['due_at' => ['2026-10-26']], $rules)['due_at']);
+    }
+
     public function test_unknown_rule_fails_loudly(): void
     {
         $this->expectException(RuntimeException::class);

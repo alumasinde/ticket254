@@ -127,6 +127,7 @@ final class Validator
             'in' => $this->checkIn($value, $parameter),
             'regex' => $this->checkRegex($value, $parameter),
             'timezone' => $this->checkTimezone($value),
+            'date' => $this->checkDate($value),
             default => throw new RuntimeException("Unknown validation rule [$name]."),
         };
     }
@@ -185,6 +186,23 @@ final class Validator
             : 'valid timezone';
     }
 
+    private function checkDate(mixed $value): ?string
+    {
+        if (!is_string($value)
+            || preg_match('/^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?(Z|[+-]\d{2}:\d{2})?$/', $value) !== 1
+        ) {
+            return 'date';
+        }
+
+        try {
+            new \DateTimeImmutable($value);
+
+            return null;
+        } catch (\Exception) {
+            return 'date';
+        }
+    }
+
     /**
      * @param array<string, string> $messages
      */
@@ -212,6 +230,7 @@ final class Validator
             'in' => sprintf('The selected %s is invalid.', $label),
             'regex' => sprintf('The %s field format is invalid.', $label),
             'timezone' => sprintf('The %s field must be a valid timezone.', $label),
+            'date' => sprintf('The %s field must be a valid date and time.', $label),
             default => sprintf('The %s field is invalid.', $label),
         };
     }

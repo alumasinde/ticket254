@@ -1,25 +1,28 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/app.twig' %}
 
-{% block title %}{{ workspace.name }} — {{ config('app.name') }}{% endblock %}
+{% block title %}Workspace — {{ workspace.name }}{% endblock %}
 
 {% block content %}
-<section class="app-head">
+<div class="page-head">
     <div>
         <p class="eyebrow">Workspace</p>
-        <h1 class="app-title">{{ workspace.name }}</h1>
-        <p class="auth-lede">
-            Signed in as {{ user.first_name }} {{ user.last_name }} · {{ role|capitalize }} · {{ workspace.timezone }}
-        </p>
+        <h1 class="page-title">Operations</h1>
+        <p class="page-lede">Requests, routing and the teams that handle them for {{ workspace.name }}.</p>
     </div>
-    <form method="post" action="{{ route('logout') }}">
-        {{ csrf_field() }}
-        <button class="button button-quiet" type="submit">Sign out</button>
-    </form>
+    <a class="button" href="{{ route('tickets.create') }}">New ticket</a>
+</div>
+
+<section class="panel queue-callout">
+    <div>
+        <h2>Ticket queue</h2>
+        <p class="muted">Every request in this workspace, filtered by status, team, assignee and due date.</p>
+    </div>
+    <a class="button button-quiet" href="{{ route('tickets.index') }}">Open tickets</a>
 </section>
 
 <div class="grid-2">
     <section class="panel">
-        <h2>Teams</h2>
+        <h2>Teams · {{ teams|length }}</h2>
         {% if teams %}
             <ul class="data-list">
                 {% for team in teams %}
@@ -32,7 +35,7 @@
     </section>
 
     <section class="panel">
-        <h2>Categories</h2>
+        <h2>Categories · {{ categories|length }}</h2>
         {% if categories %}
             <ul class="data-list">
                 {% for category in categories %}
@@ -45,5 +48,7 @@
     </section>
 </div>
 
-<p class="note">The hotel starter template is in place. Teams and categories belong to this workspace only.</p>
+<p class="app-session">
+    Signed in as {{ user.first_name }} {{ user.last_name }} · {{ role|capitalize }} · {{ workspace.timezone }}
+</p>
 {% endblock %}

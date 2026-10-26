@@ -17,4 +17,12 @@ final class CategoryRepository extends TenantScopedRepository
     {
         return $this->query($ctx)->orderBy('name')->get();
     }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function find(TenantContext $ctx, int $id): ?array
+    {
+        return $this->query($ctx)->where('id', $id)->first();
+    }
 }

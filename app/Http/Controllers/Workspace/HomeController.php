@@ -11,27 +11,22 @@ use App\Repositories\TenantRepository;
 use App\Repositories\UserRepository;
 use App\Services\Tenants\TenantContext;
 
-final class HomeController
+final class HomeController extends WorkspaceController
 {
     public function __construct(
-        private readonly UserRepository $users,
-        private readonly TenantRepository $tenants,
+        UserRepository $users,
+        TenantRepository $tenants,
         private readonly TeamRepository $teams,
         private readonly CategoryRepository $categories,
     ) {
+        parent::__construct($users, $tenants);
     }
 
     public function index(TenantContext $context): Response
     {
-        $user = $this->users->findById($context->userId);
-        $tenant = $this->tenants->findById($context->tenantId);
-
-        return view('app/home.twig', [
-            'user' => $user,
-            'workspace' => $tenant,
-            'role' => $context->role,
+        return $this->page($context, 'app/home.twig', [
             'teams' => $this->teams->all($context),
             'categories' => $this->categories->all($context),
-        ]);
+        ], 'workspace');
     }
 }

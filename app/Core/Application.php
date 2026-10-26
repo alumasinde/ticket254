@@ -208,7 +208,7 @@ final class Application
         }
 
         if ($request->expectsJson()) {
-            return $this->jsonError($status, $message, $exception->headers, null, $exception->errorCode);
+            return $this->jsonError($status, $message, $exception->headers, null, $exception->errorCode, $exception->context);
         }
 
         return $this->renderErrorPage($status, $message, $exception->headers);
@@ -284,6 +284,7 @@ final class Application
     /**
      * @param array<string, string> $headers
      * @param array<string, string>|null $fields
+     * @param array<string, mixed> $context
      */
     private function jsonError(
         int $status,
@@ -291,11 +292,12 @@ final class Application
         array $headers = [],
         ?array $fields = null,
         ?string $code = null,
+        array $context = [],
     ): Response {
-        $error = [
+        $error = array_merge([
             'code' => $code ?? $this->errorCode($status),
             'message' => $message,
-        ];
+        ], $context);
 
         if ($fields !== null) {
             $error['fields'] = $fields;

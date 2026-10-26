@@ -1,0 +1,171 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}{{ ticket.reference }} — {{ ticket.subject }}{% endblock %}
+
+{% block content %}
+<p class="breadcrumb"><a href="{{ route('tickets.index') }}">Tickets</a> / {{ ticket.reference }}</p>
+
+<div class="page-head ticket-head">
+    <div>
+        <p class="eyebrow">Ticket</p>
+        <h1 class="page-title">{{ ticket.subject }}</h1>
+        <p class="ticket-meta">
+            <span class="reference">{{ ticket.reference }}</span>
+            <span class="badge status-{{ ticket.status.code }}">{{ ticket.status.label }}</span>
+            <span class="badge priority-{{ ticket.priority.code }}">{{ ticket.priority.label }}</span>
+            {% if ticket.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+        </p>
+    </div>
+    {% if can_edit %}
+        <a class="button button-quiet" href="#edit">Edit ticket</a>
+    {% endif %}
+</div>
+
+<div class="ticket-layout">
+    <div class="ticket-main">
+        <section class="panel">
+            <h2>Description</h2>
+            <p class="description">{{ ticket.description }}</p>
+        </section>
+
+        <section class="panel">
+            <h2>History</h2>
+            {% if ticket.events %}
+                <ul class="timeline">
+                    {% for event in ticket.events %}
+                        <li>
+                            <span class="timeline-dot" aria-hidden="true"></span>
+                            <div>
+                                <p class="timeline-summary">{{ event.summary }}</p>
+                                <p class="timeline-meta">
+                                    {{ event.actor ? event.actor.name : 'System' }} ·
+                                    {{ event.created_at ? event.created_at|date('j M Y, H:i', workspace.timezone) : '—' }}
+                                </p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="muted">No history yet.</p>
+            {% endif %}
+        </section>
+
+        {% if can_edit %}
+            <section class="panel" id="edit">
+                <h2>Edit details</h2>
+                {% if errors %}
+                    <div class="alert" role="alert">
+                        <p>Please correct the highlighted fields.</p>
+                    </div>
+                {% endif %}
+                <form method="post" action="{{ route('tickets.update', {ref: ticket.reference}) }}">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="_method" value="PATCH">
+                    <input type="hidden" name="version" value="{{ ticket.version }}">
+
+                    <div class="field">
+                        <label for="subject">Subject</label>
+                        <input id="subject" name="subject" type="text" value="{{ ticket.subject }}" maxlength="200" required>
+                        {% if errors.subject is defined %}<p class="field-error">{{ errors.subject }}</p>{% endif %}
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="6" maxlength="20000" required>{{ ticket.description }}</textarea>
+                        {% if errors.description is defined %}<p class="field-error">{{ errors.description }}</p>{% endif %}
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="category_id">Category</label>
+                            <select id="category_id" name="category_id">
+                                <option value="">No category</option>
+                                {% for category in categories %}
+                                    {% if category.status == 'active' %}
+                                        <option value="{{ category.id }}"{{ ticket.category and ticket.category.id == category.id ? ' selected' : '' }}>{{ category.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if errors.category_id is defined %}<p class="field-error">{{ errors.category_id }}</p>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="site_id">Site</label>
+                            <select id="site_id" name="site_id">
+                                <option value="">No site</option>
+                                {% for site in sites %}
+                                    {% if site.status == 'active' %}
+                                        <option value="{{ site.id }}"{{ ticket.site and ticket.site.id == site.id ? ' selected' : '' }}>{{ site.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {% if errors.site_id is defined %}<p class="field-error">{{ errors.site_id }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="button" type="submit">Save changes</button>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+    </div>
+
+    <aside class="ticket-side">
+        <section class="panel">
+            <h2>Requester</h2>
+            <dl class="details">
+                <dt>Name</dt>
+                <dd>{{ ticket.requester.name }}</dd>
+                <dt>Email</dt>
+                <dd><a href="mailto:{{ ticket.requester.email }}">{{ ticket.requester.email }}</a></dd>
+                {% if ticket.requester.phone %}
+                    <dt>Phone</dt>
+                    <dd>{{ ticket.requester.phone }}</dd>
+                {% endif %}
+            </dl>
+        </section>
+
+        <section class="panel">
+            <h2>Routing</h2>
+            <dl class="details">
+                <dt>Team</dt>
+                <dd>{{ ticket.team ? ticket.team.name : 'Unassigned' }}</dd>
+                <dt>Assignee</dt>
+                <dd>{{ ticket.assigned_user ? ticket.assigned_user.name : 'Unassigned' }}</dd>
+                <dt>Category</dt>
+                <dd>{{ ticket.category ? ticket.category.name : '—' }}</dd>
+                <dt>Site</dt>
+                <dd>{{ ticket.site ? ticket.site.name : '—' }}</dd>
+            </dl>
+        </section>
+
+        <section class="panel">
+            <h2>Dates</h2>
+            <dl class="details">
+                <dt>Created</dt>
+                <dd>{{ ticket.created_at ? ticket.created_at|date('j M Y, H:i', workspace.timezone) : '—' }}</dd>
+                <dt>Updated</dt>
+                <dd>{{ ticket.updated_at ? ticket.updated_at|date('j M Y, H:i', workspace.timezone) : '—' }}</dd>
+                <dt>Due</dt>
+                <dd>
+                    {% if ticket.due_at %}
+                        {{ ticket.due_at|date('j M Y, H:i', workspace.timezone) }}
+                        {% if ticket.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+                {% if ticket.resolved_at %}
+                    <dt>Resolved</dt>
+                    <dd>{{ ticket.resolved_at|date('j M Y, H:i', workspace.timezone) }}</dd>
+                {% endif %}
+                {% if ticket.closed_at %}
+                    <dt>Closed</dt>
+                    <dd>{{ ticket.closed_at|date('j M Y, H:i', workspace.timezone) }}</dd>
+                {% endif %}
+            </dl>
+        </section>
+    </aside>
+</div>
+{% endblock %}

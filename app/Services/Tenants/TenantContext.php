@@ -13,6 +13,7 @@ final class TenantContext
         public readonly int $tenantId,
         public readonly int $userId,
         public readonly string $role,
+        public readonly string $timezone,
         private readonly array $permissions,
     ) {
     }

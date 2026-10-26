@@ -1,0 +1,170 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Tickets — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Queue</p>
+        <h1 class="page-title">Tickets</h1>
+        <p class="page-lede">{{ meta.total }} {{ meta.total == 1 ? 'request' : 'requests' }} in this view.</p>
+    </div>
+    <a class="button" href="{{ route('tickets.create') }}">New ticket</a>
+</div>
+
+<form class="filters" method="get" action="{{ route('tickets.index') }}">
+    <div class="filters-row">
+        <div class="field field-grow">
+            <label for="q">Search</label>
+            <input id="q" name="q" type="search" value="{{ filters.q }}" maxlength="120"
+                   placeholder="Reference, subject, requester">
+        </div>
+
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">Any status</option>
+                {% for status in statuses %}
+                    <option value="{{ status.code }}"{{ filters.status == status.code ? ' selected' : '' }}>{{ status.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <option value="">Any priority</option>
+                {% for priority in priorities %}
+                    <option value="{{ priority.code }}"{{ filters.priority == priority.code ? ' selected' : '' }}>{{ priority.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="team_id">Team</label>
+            <select id="team_id" name="team_id">
+                <option value="">Any team</option>
+                {% for team in teams %}
+                    <option value="{{ team.id }}"{{ filters.team_id == team.id ? ' selected' : '' }}>{{ team.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="assigned_user_id">Assignee</label>
+            <select id="assigned_user_id" name="assigned_user_id">
+                <option value="">Anyone</option>
+                {% for member in members %}
+                    <option value="{{ member.id }}"{{ filters.assigned_user_id == member.id ? ' selected' : '' }}>{{ member.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="filters-row filters-row-secondary">
+        <div class="field">
+            <label for="created_from">Created from</label>
+            <input id="created_from" name="created_from" type="date" value="{{ filters.created_from }}">
+        </div>
+
+        <div class="field">
+            <label for="created_to">Created to</label>
+            <input id="created_to" name="created_to" type="date" value="{{ filters.created_to }}">
+        </div>
+
+        <div class="field">
+            <label for="sort">Sort</label>
+            <select id="sort" name="sort">
+                <option value="-created_at"{{ filters.sort == '-created_at' ? ' selected' : '' }}>Newest first</option>
+                <option value="created_at"{{ filters.sort == 'created_at' ? ' selected' : '' }}>Oldest first</option>
+                <option value="-updated_at"{{ filters.sort == '-updated_at' ? ' selected' : '' }}>Recently updated</option>
+                <option value="-due_at"{{ filters.sort == '-due_at' ? ' selected' : '' }}>Due date · latest</option>
+                <option value="due_at"{{ filters.sort == 'due_at' ? ' selected' : '' }}>Due date · earliest</option>
+                <option value="-priority"{{ filters.sort == '-priority' ? ' selected' : '' }}>Priority · urgent first</option>
+                <option value="priority"{{ filters.sort == 'priority' ? ' selected' : '' }}>Priority · low first</option>
+            </select>
+        </div>
+
+        <div class="filter-checks">
+            <label class="check"><input type="checkbox" name="mine" value="1"{{ filters.mine ? ' checked' : '' }}> Assigned to me</label>
+            <label class="check"><input type="checkbox" name="unassigned" value="1"{{ filters.unassigned ? ' checked' : '' }}> Unassigned</label>
+            <label class="check"><input type="checkbox" name="overdue" value="1"{{ filters.overdue ? ' checked' : '' }}> Overdue</label>
+        </div>
+
+        <div class="filter-actions">
+            <button class="button" type="submit">Apply</button>
+            <a class="button button-quiet" href="{{ route('tickets.index') }}">Reset</a>
+        </div>
+    </div>
+</form>
+
+{% if rows %}
+    <div class="table-wrap">
+        <table class="ticket-table">
+            <thead>
+                <tr>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Team</th>
+                    <th scope="col">Assignee</th>
+                    <th scope="col">Created</th>
+                    <th scope="col">Due</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                    <tr>
+                        <td data-label="Reference">
+                            <a class="reference" href="{{ route('tickets.show', {ref: row.reference}) }}">{{ row.reference }}</a>
+                        </td>
+                        <td data-label="Subject">
+                            <a class="ticket-subject" href="{{ route('tickets.show', {ref: row.reference}) }}">{{ row.subject }}</a>
+                            <span class="ticket-requester">{{ row.requester.name }}</span>
+                        </td>
+                        <td data-label="Status">
+                            <span class="badge status-{{ row.status.code }}">{{ row.status.label }}</span>
+                        </td>
+                        <td data-label="Priority">
+                            <span class="badge priority-{{ row.priority.code }}">{{ row.priority.label }}</span>
+                        </td>
+                        <td data-label="Team">{{ row.team ? row.team.name : '—' }}</td>
+                        <td data-label="Assignee">{{ row.assigned_user ? row.assigned_user.name : 'Unassigned' }}</td>
+                        <td data-label="Created">{{ row.created_at ? row.created_at|date('j M Y, H:i', workspace.timezone) : '—' }}</td>
+                        <td data-label="Due">
+                            {% if row.due_at %}
+                                <span class="{{ row.is_overdue ? 'due-overdue' : '' }}">{{ row.due_at|date('j M Y, H:i', workspace.timezone) }}</span>
+                                {% if row.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if meta.total_pages > 1 %}
+        <nav class="pagination" aria-label="Ticket pages">
+            {% if meta.page > 1 %}
+                <a class="button button-quiet" href="{{ route('tickets.index', filter_query|merge({page: meta.page - 1})) }}">Previous</a>
+            {% endif %}
+            <span class="muted">Page {{ meta.page }} of {{ meta.total_pages }}</span>
+            {% if meta.page < meta.total_pages %}
+                <a class="button button-quiet" href="{{ route('tickets.index', filter_query|merge({page: meta.page + 1})) }}">Next</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="empty-state">
+        <h2>No tickets match this view</h2>
+        <p class="muted">Adjust the filters, or create the first request for this workspace.</p>
+        <div class="actions">
+            <a class="button" href="{{ route('tickets.create') }}">New ticket</a>
+            <a class="button button-quiet" href="{{ route('tickets.index') }}">Clear filters</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

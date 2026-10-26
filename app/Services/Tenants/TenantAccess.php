@@ -55,6 +55,7 @@ final class TenantAccess
             (int) $row['tenant_id'],
             (int) $row['user_id'],
             (string) $row['role_code'],
+            (string) $row['tenant_timezone'],
             $this->roles->permissionsForRole($roleId),
         );
     }

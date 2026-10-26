@@ -55,7 +55,7 @@ final class MembershipRepository
     {
         return $this->db->selectOne(
             'SELECT tm.tenant_id, tm.user_id, tm.role_id, tm.status AS membership_status, '
-            . 'r.code AS role_code, t.status AS tenant_status, '
+            . 'r.code AS role_code, t.status AS tenant_status, t.timezone AS tenant_timezone, '
             . 'u.status AS user_status, u.auth_version '
             . 'FROM tenant_memberships tm '
             . 'INNER JOIN roles r ON r.id = tm.role_id '
@@ -64,5 +64,38 @@ final class MembershipRepository
             . 'WHERE tm.tenant_id = ? AND tm.user_id = ?',
             [$tenantId, $userId],
         );
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function teamIdsForUser(int $tenantId, int $userId): array
+    {
+        $rows = $this->db->select(
+            'SELECT team_id FROM team_members WHERE tenant_id = ? AND user_id = ?',
+            [$tenantId, $userId],
+        );
+
+        return array_map(static fn (array $row): int => (int) $row['team_id'], $rows);
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    public function activeMembersForTenant(int $tenantId): array
+    {
+        $rows = $this->db->select(
+            'SELECT u.id, u.first_name, u.last_name '
+            . 'FROM tenant_memberships tm '
+            . 'INNER JOIN users u ON u.id = tm.user_id '
+            . 'WHERE tm.tenant_id = ? AND tm.status = ? AND u.status = ? '
+            . 'ORDER BY u.first_name, u.last_name, u.id',
+            [$tenantId, 'active', 'active'],
+        );
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'name' => trim((string) $row['first_name'] . ' ' . (string) $row['last_name']),
+        ], $rows);
     }
 }
