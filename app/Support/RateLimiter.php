@@ -33,6 +33,18 @@ final class RateLimiter
         return $retryAfter;
     }
 
+    /**
+     * Deletes windows that expired more than $graceDays ago.
+     */
+    public function prune(int $graceDays = 1): int
+    {
+        $days = max(0, $graceDays);
+
+        return $this->db->statement(
+            'DELETE FROM rate_limits WHERE expires_at < UTC_TIMESTAMP() - INTERVAL ' . $days . ' DAY',
+        )->rowCount();
+    }
+
     private function hit(string $key, int $maxAttempts, int $decaySeconds): ?int
     {
         $now = time();

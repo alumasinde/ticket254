@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Tickets;
 
+use App\Core\Exceptions\NotFoundException;
+use App\Core\Request;
 use App\Core\ValidationException;
 use App\Repositories\TicketAttachmentRepository;
+use App\Services\Audit\AuditLogger;
+use App\Services\Tenants\TenantContext;
 use finfo;
 use RuntimeException;
 
 final class TicketAttachmentService
 {
-    public function __construct(private readonly TicketAttachmentRepository $attachments)
-    {
+    public function __construct(
+        private readonly TicketAttachmentRepository $attachments,
+        private readonly AuditLogger $audit,
+    ) {
     }
 
     /**
@@ -107,6 +113,52 @@ final class TicketAttachmentService
 
             throw $exception;
         }
+    }
+
+    /**
+     * @param array<string, mixed> $file
+     * @return array<string, mixed>
+     */
+    public function attach(TenantContext $ctx, int $ticketId, array $file, Request $request): array
+    {
+        $id = $this->store($ctx->tenantId, $ticketId, $file, null, $ctx->userId, 'file');
+        $attachment = $this->attachments->find($ctx->tenantId, $ticketId, $id);
+
+        if ($attachment === null) {
+            throw new NotFoundException();
+        }
+
+        $this->audit->record($request, $ctx->tenantId, $ctx->userId, 'attachment.uploaded', 'ticket_attachment', $id, [
+            'ticket_id' => $ticketId,
+            'name' => (string) $attachment['original_name'],
+            'size_bytes' => (int) $attachment['size_bytes'],
+        ]);
+
+        return $attachment;
+    }
+
+    public function remove(TenantContext $ctx, int $ticketId, int $attachmentId, Request $request): void
+    {
+        $attachment = $this->attachments->find($ctx->tenantId, $ticketId, $attachmentId);
+
+        if ($attachment === null) {
+            throw new NotFoundException();
+        }
+
+        $path = $this->path($ctx->tenantId, $attachment);
+
+        if ($this->attachments->delete($ctx->tenantId, $ticketId, $attachmentId) !== 1) {
+            throw new NotFoundException();
+        }
+
+        if ($path !== null) {
+            @unlink($path);
+        }
+
+        $this->audit->record($request, $ctx->tenantId, $ctx->userId, 'attachment.deleted', 'ticket_attachment', $attachmentId, [
+            'ticket_id' => $ticketId,
+            'name' => (string) $attachment['original_name'],
+        ]);
     }
 
     /**

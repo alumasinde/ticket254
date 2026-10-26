@@ -53,4 +53,13 @@ final class TicketAttachmentRepository
             ->where('id', $id)
             ->first();
     }
+
+    public function delete(int $tenantId, int $ticketId, int $id): int
+    {
+        return $this->db->table('ticket_attachments')
+            ->where('tenant_id', $tenantId)
+            ->where('ticket_id', $ticketId)
+            ->where('id', $id)
+            ->delete();
+    }
 }

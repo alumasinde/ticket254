@@ -28,19 +28,45 @@
             <p class="description">{{ ticket.description }}</p>
         </section>
 
-        {% if ticket.attachments %}
-            <section class="panel">
-                <h2>Attachments</h2>
+        <section class="panel">
+            <h2>Attachments</h2>
+
+            {% if ticket.attachments %}
                 <ul class="attachment-list">
                     {% for attachment in ticket.attachments %}
                         <li>
-                            <a href="{{ route('api.tickets.attachments.download', {ref: ticket.reference, attachmentId: attachment.id}) }}">{{ attachment.original_name }}</a>
-                            <span class="muted">{{ (attachment.size_bytes / 1024)|round }} KB</span>
+                            <span>
+                                <a href="{{ route('api.tickets.attachments.download', {ref: ticket.reference, attachmentId: attachment.id}) }}">{{ attachment.original_name }}</a>
+                                <span class="muted">{{ (attachment.size_bytes / 1024)|round }} KB</span>
+                            </span>
+                            {% if can('tickets.attach') %}
+                                <form method="post" action="{{ route('tickets.attachments.delete', {ref: ticket.reference, attachmentId: attachment.id}) }}">
+                                    {{ csrf_field() }}
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button class="link-button danger" type="submit">Remove</button>
+                                </form>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
-            </section>
-        {% endif %}
+            {% else %}
+                <p class="muted">No attachments yet.</p>
+            {% endif %}
+
+            {% if can('tickets.attach') %}
+                <form class="attachment-form" method="post" action="{{ route('tickets.attachments.store', {ref: ticket.reference}) }}" enctype="multipart/form-data">
+                    {{ csrf_field() }}
+                    <div class="field">
+                        <label for="attachment-file">Add a file <span class="optional">JPG, PNG, PDF or TXT · up to 5 MB</span></label>
+                        <input id="attachment-file" name="file" type="file" accept=".jpg,.jpeg,.png,.pdf,.txt" required>
+                        {% if errors.file is defined %}<p class="field-error">{{ errors.file }}</p>{% endif %}
+                    </div>
+                    <div class="form-actions">
+                        <button class="button button-quiet" type="submit">Upload attachment</button>
+                    </div>
+                </form>
+            {% endif %}
+        </section>
 
         <section class="panel" id="conversation">
             <h2>Conversation</h2>

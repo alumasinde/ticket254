@@ -184,7 +184,7 @@ final class LoginTest extends TestCase
         $page = $this->get('/app');
         $this->assertSame(200, $page->status());
         $this->assertStringContainsString('Glee Hotel', $page->content());
-        $this->assertStringContainsString('Signed in as Amina Otieno', $page->content());
+        $this->assertStringContainsString('Amina Otieno', $page->content());
         $this->assertStringContainsString('Signed in.', $page->content());
     }
 

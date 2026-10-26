@@ -25,6 +25,20 @@ final class RoleRepository
     }
 
     /**
+     * @return list<array{id: int, code: string, name: string}>
+     */
+    public function all(): array
+    {
+        $rows = $this->db->table('roles')->orderBy('id')->get();
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'code' => (string) $row['code'],
+            'name' => (string) $row['name'],
+        ], $rows);
+    }
+
+    /**
      * @return list<string>
      */
     public function permissionsForRole(int $roleId): array

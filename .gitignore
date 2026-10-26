@@ -13,6 +13,8 @@
 !/storage/framework/sessions/.gitkeep
 /storage/private/*
 !/storage/private/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
 
 /.idea/
 /.vscode/

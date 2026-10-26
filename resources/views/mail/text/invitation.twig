@@ -1,0 +1,13 @@
+Hello,
+
+{{ inviter_name }} invited you to join {{ workspace_name }} as {{ role }}.
+{% if teams %}
+You will be added to: {{ teams }}.
+{% endif %}
+Accept the invitation:
+
+{{ accept_url }}
+
+This invitation expires on {{ expires_at }}. If you were not expecting it, ignore this email.
+
+{{ workspace_name }}

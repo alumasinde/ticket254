@@ -76,14 +76,16 @@ final class Application
         try {
             $this->container->get(SessionInterface::class)->beginRequest();
 
-            return $this->container->get(Router::class)->dispatch($request);
+            $response = $this->container->get(Router::class)->dispatch($request);
         } catch (ValidationException $exception) {
-            return $this->handleValidationException($request, $exception);
+            $response = $this->handleValidationException($request, $exception);
         } catch (HttpException $exception) {
-            return $this->handleHttpException($request, $exception);
+            $response = $this->handleHttpException($request, $exception);
         } catch (Throwable $exception) {
-            return $this->handleUnexpectedException($request, $exception);
+            $response = $this->handleUnexpectedException($request, $exception);
         }
+
+        return $this->applySecurityHeaders($response);
     }
 
     public function container(): Container
@@ -98,13 +100,28 @@ final class Application
 
     private function ensureStorage(): void
     {
-        foreach (['logs', 'cache/twig', 'framework/sessions', 'private'] as $directory) {
+        foreach (['logs', 'cache/twig', 'framework/sessions', 'private', 'backups'] as $directory) {
             $path = $this->basePath . '/storage/' . $directory;
 
             if (!is_dir($path)) {
                 mkdir($path, 0775, true);
             }
         }
+    }
+
+    private function applySecurityHeaders(Response $response): Response
+    {
+        $config = $this->container->get(Config::class);
+
+        foreach ((array) $config->get('security.headers', []) as $name => $value) {
+            $response->withHeader((string) $name, (string) $value);
+        }
+
+        if ((bool) $config->get('security.hsts', false)) {
+            $response->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
+        return $response;
     }
 
     private function loadEnvironment(): void

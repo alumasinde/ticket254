@@ -1,0 +1,31 @@
+{% extends 'layouts/base.twig' %}
+
+{% block body_class %}platform-body{% endblock %}
+
+{% block header %}
+<header class="app-bar platform-bar">
+    <div class="app-bar-inner">
+        <div class="app-brand">
+            <a class="wordmark" href="{{ route('platform.index') }}">{{ config('app.name') }} Platform</a>
+            <span class="workspace-name">Operations console</span>
+        </div>
+
+        <nav class="app-nav" aria-label="Platform">
+            <a href="{{ route('platform.index') }}"{{ nav == 'overview' ? ' aria-current="page"' : '' }}>Overview</a>
+            <a href="{{ route('platform.tenants') }}"{{ nav == 'tenants' ? ' aria-current="page"' : '' }}>Workspaces</a>
+            <a href="{{ route('platform.health') }}"{{ nav == 'health' ? ' aria-current="page"' : '' }}>Health</a>
+        </nav>
+
+        <div class="app-user">
+            <span class="app-user-name">{{ user.first_name }} {{ user.last_name }}</span>
+            <a class="small-link" href="{{ route('home') }}">Public site</a>
+            <form method="post" action="{{ route('logout') }}">
+                {{ csrf_field() }}
+                <button class="link-button" type="submit">Sign out</button>
+            </form>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block main_class %}app-main{% endblock %}

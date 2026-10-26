@@ -1,0 +1,14 @@
+{% extends 'mail/layout.twig' %}
+
+{% block content %}
+    <p style="margin:0 0 12px;">Hello,</p>
+    <p style="margin:0 0 12px;">{{ inviter_name }} invited you to join {{ workspace_name }} as {{ role }}.</p>
+    {% if teams %}
+        <p style="margin:0 0 16px;">You will be added to: {{ teams }}.</p>
+    {% endif %}
+    <p style="margin:0 0 20px;">
+        <a href="{{ accept_url }}" style="display:inline-block;padding:10px 16px;background:#14532d;color:#ffffff;border-radius:6px;text-decoration:none;font-weight:600;">Accept invitation</a>
+    </p>
+    <p style="margin:0 0 12px;font-size:13px;color:#5e6a63;">This invitation expires on {{ expires_at }}. If you were not expecting it, ignore this email.</p>
+    <p style="margin:0;font-size:13px;color:#5e6a63;">{{ accept_url }}</p>
+{% endblock %}

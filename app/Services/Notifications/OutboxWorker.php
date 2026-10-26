@@ -8,6 +8,7 @@ use App\Database\Database;
 use App\Mail\DeliveryResult;
 use App\Mail\Notification;
 use App\Mail\NotificationChannel;
+use App\Support\RateLimiter;
 use Psr\Log\LoggerInterface;
 
 final class OutboxWorker
@@ -22,6 +23,7 @@ final class OutboxWorker
         private readonly Database $db,
         private readonly NotificationChannel $channel,
         private readonly LoggerInterface $logger,
+        private readonly RateLimiter $rateLimits,
     ) {
     }
 
@@ -177,8 +179,6 @@ final class OutboxWorker
 
     private function cleanupRateLimits(): void
     {
-        $this->db->statement(
-            'DELETE FROM rate_limits WHERE expires_at < UTC_TIMESTAMP() - INTERVAL 1 DAY',
-        );
+        $this->rateLimits->prune(1);
     }
 }

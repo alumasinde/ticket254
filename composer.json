@@ -30,6 +30,7 @@
         }
     },
     "scripts": {
+        "serve": "php -S 127.0.0.1:8099 -t public",
         "test": "phpunit",
         "migrate": "php hd migrate"
     },

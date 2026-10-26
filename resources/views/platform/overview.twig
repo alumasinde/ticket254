@@ -1,0 +1,74 @@
+{% extends 'platform/layout.twig' %}
+
+{% block title %}Platform overview — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Platform</p>
+        <h1 class="page-title">Operations overview</h1>
+        <p class="page-lede">Metadata across every workspace. Tenant data stays behind its own login.</p>
+    </div>
+    <a class="button" href="{{ route('platform.tenants') }}">All workspaces</a>
+</div>
+
+<section class="stat-grid" aria-label="Platform totals">
+    <div class="stat">
+        <span class="stat-label">Workspaces</span>
+        <strong class="stat-value">{{ overview.tenants_total }}</strong>
+        <span class="stat-note">{{ overview.tenants_active }} active · {{ overview.tenants_suspended }} suspended</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Users</span>
+        <strong class="stat-value">{{ overview.users_total }}</strong>
+        <span class="stat-note">{{ overview.users_active }} active</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Tickets</span>
+        <strong class="stat-value">{{ overview.tickets_total }}</strong>
+        <span class="stat-note">{{ overview.tickets_this_month }} this month</span>
+    </div>
+    <div class="stat{{ overview.outbox_failed > 0 ? ' stat-danger' : '' }}">
+        <span class="stat-label">Outbox failures</span>
+        <strong class="stat-value">{{ overview.outbox_failed }}</strong>
+        <span class="stat-note">{{ overview.outbox_pending }} queued</span>
+    </div>
+</section>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Recently created workspaces</h2>
+            <a class="small-link" href="{{ route('platform.tenants') }}">View all</a>
+        </div>
+
+        {% if tenants %}
+            <ul class="data-list">
+                {% for tenant in tenants %}
+                    <li>
+                        <span>
+                            <a class="ticket-subject" href="{{ route('platform.tenants.show', {id: tenant.id}) }}">{{ tenant.name }}</a>
+                            <span class="ticket-requester">{{ tenant.slug }} · {{ tenant.agents }} agent{{ tenant.agents == 1 ? '' : 's' }}{% if tenant.plan %} · {{ tenant.plan.name }}{% endif %}</span>
+                        </span>
+                        <span class="badge{{ tenant.status == 'active' ? ' status-resolved' : '' }}{{ tenant.status == 'suspended' ? ' badge-overdue' : '' }}">{{ tenant.status }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No workspaces yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <h2>Delivery queue</h2>
+            <a class="small-link" href="{{ route('platform.health') }}">Health</a>
+        </div>
+        <p class="muted small">The worker sends requester and staff notifications. Failures stay in the queue for review.</p>
+        <div class="status-strip">
+            <span><span class="badge">{{ overview.outbox_pending }}</span> queued</span>
+            <span><span class="badge{{ overview.outbox_failed > 0 ? ' badge-overdue' : '' }}">{{ overview.outbox_failed }}</span> failed</span>
+        </div>
+    </section>
+</div>
+{% endblock %}

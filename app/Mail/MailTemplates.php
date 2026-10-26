@@ -39,7 +39,7 @@ final class MailTemplates
 
     private function type(string $eventType): string
     {
-        return in_array($eventType, ['ticket_created', 'ticket_reply', 'ticket_requester_reply'], true)
+        return in_array($eventType, ['ticket_created', 'ticket_reply', 'ticket_requester_reply', 'invitation'], true)
             ? $eventType
             : 'generic';
     }
@@ -58,6 +58,7 @@ final class MailTemplates
             )),
             'ticket_reply' => $reference === '' ? 'Support replied to your request' : 'Re: ' . $reference . ' — ' . $subject,
             'ticket_requester_reply' => $reference === '' ? 'A requester replied' : 'New requester reply on ' . $reference,
+            'invitation' => $workspace === '' ? 'You have been invited' : 'You are invited to ' . $workspace,
             default => $reference === '' ? 'Support update' : 'Update on ' . $reference,
         };
     }

@@ -1,0 +1,132 @@
+{% extends 'platform/layout.twig' %}
+
+{% block title %}{{ tenant.name }} — Platform{% endblock %}
+
+{% block content %}
+<p class="breadcrumb"><a href="{{ route('platform.tenants') }}">Workspaces</a> / {{ tenant.name }}</p>
+
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1 class="page-title">{{ tenant.name }}</h1>
+        <p class="ticket-meta">
+            <span class="reference">{{ tenant.slug }}</span>
+            <span class="badge{{ tenant.status == 'active' ? ' status-resolved' : '' }}{{ tenant.status == 'suspended' ? ' badge-overdue' : '' }}">{{ tenant.status }}</span>
+            <span>{{ tenant.timezone }}</span>
+        </p>
+    </div>
+</div>
+
+<div class="settings-grid">
+    <div class="settings-column">
+        <section class="panel">
+            <h2>Details</h2>
+            <dl class="details">
+                <dt>Contact</dt>
+                <dd>{{ tenant.contact_email ? tenant.contact_email : '—' }}</dd>
+                <dt>Phone</dt>
+                <dd>{{ tenant.contact_phone ? tenant.contact_phone : '—' }}</dd>
+                <dt>Created</dt>
+                <dd>{{ tenant.created_at ? tenant.created_at|date('j M Y, H:i', tenant.timezone) : '—' }}</dd>
+                <dt>Agents</dt>
+                <dd>{{ tenant.agents }}</dd>
+                <dt>Plan</dt>
+                <dd>{{ tenant.plan ? tenant.plan.name : 'No plan' }}{% if tenant.plan and tenant.plan.status %} · {{ tenant.plan.status }}{% endif %}</dd>
+                {% if tenant.plan and tenant.plan.current_period_end %}
+                    <dt>Renews</dt>
+                    <dd>{{ tenant.plan.current_period_end|date('j M Y') }}</dd>
+                {% endif %}
+            </dl>
+        </section>
+
+        <section class="panel">
+            <h2>Usage</h2>
+            <dl class="details">
+                <dt>Agents</dt>
+                <dd>{{ tenant.usage.agents }}</dd>
+                <dt>Tickets</dt>
+                <dd>{{ tenant.usage.tickets_total }}</dd>
+                <dt>This month</dt>
+                <dd>{{ tenant.usage.tickets_this_month }}</dd>
+                <dt>Outbox</dt>
+                <dd>{{ tenant.usage.outbox_pending }} queued</dd>
+            </dl>
+            <p class="field-hint">Usage is metadata only. Ticket content stays private to the workspace.</p>
+        </section>
+
+        <section class="panel">
+            <h2>Subscription</h2>
+            <form method="post" action="{{ route('platform.tenants.subscription', {id: tenant.id}) }}" class="side-form">
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="PATCH">
+
+                <div class="field">
+                    <label for="plan_code">Plan</label>
+                    <select id="plan_code" name="plan_code" required>
+                        {% for plan in tenant.plans %}
+                            <option value="{{ plan.code }}"{{ tenant.plan and tenant.plan.code == plan.code ? ' selected' : '' }}>
+                                {{ plan.name }} — {{ (plan.monthly_price_minor / 100)|number_format(0) }} {{ plan.currency }}/month
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.plan_code is defined %}<p class="field-error">{{ errors.plan_code }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="subscription_status">Status</label>
+                    <select id="subscription_status" name="status">
+                        {% for status in ['trial', 'active', 'past_due', 'cancelled', 'suspended'] %}
+                            <option value="{{ status }}"{{ tenant.plan and tenant.plan.status == status ? ' selected' : '' }}>{{ status|replace({'_': ' '})|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.status is defined %}<p class="field-error">{{ errors.status }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="current_period_end">Period ends</label>
+                    <input id="current_period_end" name="current_period_end" type="date"
+                           value="{{ tenant.plan and tenant.plan.current_period_end ? tenant.plan.current_period_end|slice(0, 10) : '' }}">
+                    {% if errors.current_period_end is defined %}<p class="field-error">{{ errors.current_period_end }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="notes">Notes <span class="optional">optional</span></label>
+                    <textarea id="notes" name="notes" rows="2" maxlength="255"></textarea>
+                </div>
+
+                <button class="button" type="submit">Save subscription</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="settings-column">
+        <section class="panel">
+            <h2>Access</h2>
+            {% if tenant.status == 'suspended' %}
+                <p class="muted">Suspended{% if tenant.suspended_at %} on {{ tenant.suspended_at|date('j M Y, H:i', tenant.timezone) }}{% endif %}.</p>
+                {% if tenant.suspended_reason %}<p class="field-hint">Reason: {{ tenant.suspended_reason }}</p>{% endif %}
+                <form method="post" action="{{ route('platform.tenants.reactivate', {id: tenant.id}) }}">
+                    {{ csrf_field() }}
+                    <button class="button" type="submit">Reactivate workspace</button>
+                </form>
+            {% else %}
+                <p class="muted">Suspending blocks every member immediately. No data is deleted.</p>
+                <form method="post" action="{{ route('platform.tenants.suspend', {id: tenant.id}) }}" class="side-form">
+                    {{ csrf_field() }}
+                    <div class="field">
+                        <label for="reason">Reason</label>
+                        <input id="reason" name="reason" type="text" maxlength="255" value="{{ old('reason') }}" required>
+                        {% if errors.reason is defined %}<p class="field-error">{{ errors.reason }}</p>{% endif %}
+                    </div>
+                    <button class="button button-quiet danger" type="submit">Suspend workspace</button>
+                </form>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <h2>Platform notes</h2>
+            <p class="muted small">Platform administrators see workspace metadata, usage and subscription state. They do not browse tickets or member activity from this console.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}

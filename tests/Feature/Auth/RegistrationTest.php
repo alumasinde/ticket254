@@ -224,11 +224,12 @@ final class RegistrationTest extends TestCase
 
         $app = $this->get('/app');
         $this->assertSame(200, $app->status());
-        $this->assertStringContainsString('Glee Hotel', $app->content());
-        $this->assertStringContainsString('Owner', $app->content());
-        $this->assertStringContainsString('Your workspace is ready.', $app->content());
-        $this->assertStringContainsString('Housekeeping', $app->content());
-        $this->assertStringContainsString('Wi-Fi/Network', $app->content());
+        $content = $app->content();
+        $this->assertStringContainsString('Glee Hotel', $content);
+        $this->assertStringContainsString('Your workspace is ready.', $content);
+        $this->assertStringContainsString('Today at Glee Hotel', $content);
+        $this->assertStringContainsString(route('teams.index'), $content);
+        $this->assertStringContainsString(route('categories.index'), $content);
 
         $auth = $this->sessionAuth();
         $this->assertNotNull($auth);

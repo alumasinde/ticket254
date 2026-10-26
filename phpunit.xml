@@ -26,6 +26,7 @@
         <env name="APP_URL" value="http://localhost" force="true"/>
         <env name="DB_NAME" value="hudumadesk_test" force="true"/>
         <env name="SESSION_SECURE" value="false" force="true"/>
+        <env name="SECURITY_HSTS" value="false" force="true"/>
         <env name="LOG_LEVEL" value="debug" force="true"/>
     </php>
 </phpunit>

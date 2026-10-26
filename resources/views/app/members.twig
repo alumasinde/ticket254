@@ -1,0 +1,202 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Members — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1 class="page-title">Members &amp; invitations</h1>
+        <p class="page-lede">Control who can work tickets. Removing a member keeps their ticket history but ends their access here.</p>
+    </div>
+</div>
+
+{% set invitation_url = flash('invitation_url') %}
+{% if invitation_url %}
+    <section class="panel invite-link-panel">
+        <h2>Invitation link — shown once</h2>
+        <p class="field-hint">If email delivery is not configured, copy this link and send it to the invitee directly.</p>
+        <div class="link-row">
+            <input class="readonly" type="text" value="{{ invitation_url }}" readonly aria-label="Invitation link">
+        </div>
+    </section>
+{% endif %}
+
+<div class="directory-layout">
+    <div class="directory-main">
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Members</h2>
+                <span class="tag">{{ members|length }}</span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="ticket-table">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Teams</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                            <tr>
+                                <td data-label="Person">
+                                    <span class="ticket-subject">{{ member.name }}</span>
+                                    <span class="ticket-requester">{{ member.email }}</span>
+                                </td>
+                                <td data-label="Role">
+                                    <form class="role-form" method="post" action="{{ route('members.update', {userId: member.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="PATCH">
+                                        <select name="role" aria-label="Role for {{ member.name }}">
+                                            {% for option in roles %}
+                                                <option value="{{ option.code }}"{{ member.role == option.code ? ' selected' : '' }}>{{ option.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button class="link-button" type="submit">Save</button>
+                                    </form>
+                                </td>
+                                <td data-label="Status">
+                                    {% if member.user_status != 'active' %}
+                                        <span class="badge badge-overdue">Account disabled</span>
+                                    {% elseif member.status == 'active' %}
+                                        <span class="badge status-resolved">Active</span>
+                                    {% else %}
+                                        <span class="badge">Disabled</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Teams">
+                                    {% if member.teams %}
+                                        {{ member.teams|join(', ') }}
+                                    {% else %}
+                                        <span class="muted">No teams</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Actions">
+                                    <div class="row-actions">
+                                        {% if member.status == 'active' %}
+                                            <form method="post" action="{{ route('members.update', {userId: member.id}) }}">
+                                                {{ csrf_field() }}
+                                                <input type="hidden" name="_method" value="PATCH">
+                                                <input type="hidden" name="status" value="disabled">
+                                                <button class="link-button" type="submit"{{ member.id == user.id ? ' disabled' : '' }}>Disable</button>
+                                            </form>
+                                        {% elseif member.user_status == 'active' %}
+                                            <form method="post" action="{{ route('members.update', {userId: member.id}) }}">
+                                                {{ csrf_field() }}
+                                                <input type="hidden" name="_method" value="PATCH">
+                                                <input type="hidden" name="status" value="active">
+                                                <button class="link-button" type="submit">Enable</button>
+                                            </form>
+                                        {% endif %}
+                                        <form method="post" action="{{ route('members.remove', {userId: member.id}) }}">
+                                            {{ csrf_field() }}
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button class="link-button danger" type="submit"{{ member.id == user.id ? ' disabled' : '' }}>Remove</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Pending invitations</h2>
+                <span class="tag">{{ invitations|length }}</span>
+            </div>
+
+            {% if invitations %}
+                <ul class="data-list">
+                    {% for invitation in invitations %}
+                        <li>
+                            <span>
+                                <strong>{{ invitation.email }}</strong>
+                                <span class="ticket-requester">
+                                    {{ invitation.role_name }}
+                                    {% if invitation.teams %} · {{ invitation.teams|join(', ') }}{% endif %}
+                                    {% if invitation.invited_by %} · invited by {{ invitation.invited_by }}{% endif %}
+                                    · expires {{ invitation.expires_at ? invitation.expires_at|date('j M Y', workspace.timezone) : '—' }}
+                                </span>
+                            </span>
+                            <span class="row-actions">
+                                <span class="badge{{ invitation.status == 'pending' ? '' : '' }}">{{ invitation.status }}</span>
+                                {% if invitation.status == 'pending' %}
+                                    <form method="post" action="{{ route('invitations.resend', {id: invitation.id}) }}">
+                                        {{ csrf_field() }}
+                                        <button class="link-button" type="submit">Resend</button>
+                                    </form>
+                                    <form method="post" action="{{ route('invitations.revoke', {id: invitation.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button class="link-button danger" type="submit">Revoke</button>
+                                    </form>
+                                {% endif %}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="muted">No pending invitations.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <aside class="directory-side">
+        <section class="panel">
+            <h2>Invite someone</h2>
+            <form method="post" action="{{ route('invitations.store') }}" class="side-form">
+                {{ csrf_field() }}
+                <div class="field">
+                    <label for="invite-email">Work email</label>
+                    <input id="invite-email" name="email" type="email" value="{{ old('email') }}" maxlength="254" required>
+                    {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+                </div>
+                <div class="field">
+                    <label for="invite-role">Role</label>
+                    <select id="invite-role" name="role">
+                        {% for option in roles %}
+                            {% if option.code != 'owner' or role == 'owner' %}
+                                <option value="{{ option.code }}"{{ old('role', 'agent') == option.code ? ' selected' : '' }}>{{ option.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    {% if errors.role is defined %}<p class="field-error">{{ errors.role }}</p>{% endif %}
+                </div>
+                {% if teams %}
+                    <fieldset class="field">
+                        <legend>Teams <span class="optional">optional</span></legend>
+                        {% for team in teams %}
+                            <label class="choice">
+                                <input type="checkbox" name="team_ids[]" value="{{ team.id }}">
+                                {{ team.name }}
+                            </label>
+                        {% endfor %}
+                        {% if errors.team_ids is defined %}<p class="field-error">{{ errors.team_ids }}</p>{% endif %}
+                    </fieldset>
+                {% endif %}
+                <button class="button" type="submit">Send invitation</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Roles</h2>
+            <dl class="details">
+                <dt>Owner</dt>
+                <dd>Full control, including settings and other owners.</dd>
+                <dt>Admin</dt>
+                <dd>Runs tickets, teams, categories and members.</dd>
+                <dt>Agent</dt>
+                <dd>Works tickets assigned to them or their teams.</dd>
+            </dl>
+        </section>
+    </aside>
+</div>
+{% endblock %}

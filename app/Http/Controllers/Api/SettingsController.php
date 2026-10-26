@@ -8,6 +8,7 @@ use App\Core\Exceptions\NotFoundException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Repositories\TenantRepository;
+use App\Services\Audit\AuditLogger;
 use App\Services\Tenants\PublicSettings;
 use App\Services\Tenants\TenantContext;
 
@@ -16,6 +17,7 @@ final class SettingsController
     public function __construct(
         private readonly TenantRepository $tenants,
         private readonly PublicSettings $settings,
+        private readonly AuditLogger $audit,
     ) {
     }
 
@@ -40,12 +42,18 @@ final class SettingsController
             ], $request->only($profileKeys)));
 
             $tenant = $this->tenant($context);
+            $this->audit->record($request, $context->tenantId, $context->userId, 'settings.profile_updated', 'tenant', $context->tenantId, [
+                'changed' => array_values(array_intersect($profileKeys, array_keys($input))),
+            ]);
         }
 
         if ($this->hasPublicFormKeys($input)) {
             $this->settings->updatePublicForm($tenant, $input);
 
             $tenant = $this->tenant($context);
+            $this->audit->record($request, $context->tenantId, $context->userId, 'settings.public_form_updated', 'tenant', $context->tenantId, [
+                'changed' => array_values(array_diff(array_keys($input), ['_token', '_method'])),
+            ]);
         }
 
         return Response::json(['data' => $this->settings->view($tenant)]);
@@ -53,22 +61,37 @@ final class SettingsController
 
     public function updatePublicForm(Request $request, TenantContext $context): Response
     {
+        $this->settings->updatePublicForm($this->tenant($context), $request->all());
+        $this->audit->record($request, $context->tenantId, $context->userId, 'settings.public_form_updated', 'tenant', $context->tenantId, [
+            'changed' => array_values(array_diff(array_keys($request->all()), ['_token', '_method'])),
+        ]);
+
         return Response::json([
-            'data' => $this->settings->updatePublicForm($this->tenant($context), $request->all()),
+            'data' => $this->settings->view($this->tenant($context)),
         ]);
     }
 
-    public function regenerate(TenantContext $context): Response
+    public function regenerate(Request $request, TenantContext $context): Response
     {
+        $this->settings->regenerateKey($this->tenant($context));
+        $this->audit->record($request, $context->tenantId, $context->userId, 'settings.key_regenerated', 'tenant', $context->tenantId);
+
         return Response::json([
-            'data' => $this->settings->regenerateKey($this->tenant($context)),
+            'data' => $this->settings->view($this->tenant($context)),
         ]);
     }
 
     public function updateSlug(Request $request, TenantContext $context): Response
     {
+        $tenant = $this->tenant($context);
+        $this->settings->changeSlug($tenant, (string) $request->input('slug', ''));
+        $this->audit->record($request, $context->tenantId, $context->userId, 'settings.slug_changed', 'tenant', $context->tenantId, [
+            'from' => (string) $tenant['slug'],
+            'to' => (string) $request->input('slug', ''),
+        ]);
+
         return Response::json([
-            'data' => $this->settings->changeSlug($this->tenant($context), (string) $request->input('slug', '')),
+            'data' => $this->settings->view($this->tenant($context)),
         ]);
     }
 

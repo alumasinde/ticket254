@@ -102,9 +102,29 @@ final class TicketController
         return Response::json(['data' => TicketPresenter::message($message)], 201);
     }
 
-    public function download(string $ref, int $attachmentId, TenantContext $context): Response
+    public function uploadAttachment(Request $request, string $ref, TenantContext $context): Response
     {
         $detail = $this->reader->detail($context, $ref);
+        $attachment = $this->attachmentFiles->attach(
+            $context,
+            (int) $detail['row']['id'],
+            $request->file('file') ?? [],
+            $request,
+        );
+
+        return Response::json(['data' => TicketPresenter::attachment($attachment)], 201);
+    }
+
+    public function deleteAttachment(Request $request, string $ref, int $attachmentId, TenantContext $context): Response
+    {
+        $detail = $this->reader->detail($context, $ref);
+        $this->attachmentFiles->remove($context, (int) $detail['row']['id'], $attachmentId, $request);
+
+        return Response::noContent();
+    }
+
+    public function download(string $ref, int $attachmentId, TenantContext $context): Response
+    {        $detail = $this->reader->detail($context, $ref);
         $attachment = $this->attachments->find($context->tenantId, (int) $detail['row']['id'], $attachmentId);
 
         if ($attachment === null) {

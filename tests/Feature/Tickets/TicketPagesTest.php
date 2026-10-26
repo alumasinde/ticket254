@@ -22,12 +22,15 @@ final class TicketPagesTest extends TestCase
         $this->assertSame(200, $page->status());
         $content = $page->content();
 
-        $this->assertStringContainsString('Signed in as Amina Otieno', $content);
+        $this->assertStringContainsString('Amina Otieno', $content);
         $this->assertStringContainsString('Glee Hotel', $content);
+        $this->assertStringContainsString('Today at Glee Hotel', $content);
+        $this->assertStringContainsString('Needs attention', $content);
+        $this->assertStringContainsString('Average resolution', $content);
         $this->assertStringContainsString(route('tickets.index'), $content);
         $this->assertStringContainsString(route('tickets.create'), $content);
-        $this->assertStringContainsString('Front Office', $content);
-        $this->assertStringContainsString('Housekeeping', $content);
+        $this->assertStringContainsString(route('teams.index'), $content);
+        $this->assertStringContainsString(route('categories.index'), $content);
         $this->assertSame(4, $this->db()->table('teams')->where('tenant_id', $fixture['tenant_id'])->count());
     }
 

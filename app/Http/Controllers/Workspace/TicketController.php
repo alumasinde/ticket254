@@ -23,6 +23,7 @@ use App\Repositories\TicketReferenceRepository;
 use App\Repositories\UserRepository;
 use App\Services\Tickets\CreateTicket;
 use App\Services\Tickets\TicketAccess;
+use App\Services\Tickets\TicketAttachmentService;
 use App\Services\Tickets\TicketFilters;
 use App\Services\Tickets\TicketLifecycle;
 use App\Services\Tickets\TicketPresenter;
@@ -49,6 +50,7 @@ final class TicketController extends WorkspaceController
         private readonly SiteRepository $sites,
         private readonly MembershipRepository $memberships,
         private readonly TrackingLinkService $trackingLinks,
+        private readonly TicketAttachmentService $attachmentFiles,
     ) {
         parent::__construct($users, $tenants);
     }
@@ -189,5 +191,23 @@ final class TicketController extends WorkspaceController
         return redirect(route('tickets.show', ['ref' => $ref]))
             ->with('success', 'A new tracking link was created. The old link no longer works.')
             ->with('tracking_url', $result['tracking_url']);
+    }
+
+    public function uploadAttachment(Request $request, string $ref, TenantContext $context): Response
+    {
+        $detail = $this->reader->detail($context, $ref);
+        $this->attachmentFiles->attach($context, (int) $detail['row']['id'], $request->file('file') ?? [], $request);
+
+        return redirect(route('tickets.show', ['ref' => $ref]))
+            ->with('success', 'Attachment added.');
+    }
+
+    public function deleteAttachment(Request $request, string $ref, int $attachmentId, TenantContext $context): Response
+    {
+        $detail = $this->reader->detail($context, $ref);
+        $this->attachmentFiles->remove($context, (int) $detail['row']['id'], $attachmentId, $request);
+
+        return redirect(route('tickets.show', ['ref' => $ref]))
+            ->with('success', 'Attachment removed.');
     }
 }

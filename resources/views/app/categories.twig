@@ -1,0 +1,186 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Categories &amp; sites — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1 class="page-title">Categories &amp; sites</h1>
+        <p class="page-lede">Categories describe the kind of issue. Sites describe where it happened. Both keep reporting meaningful.</p>
+    </div>
+</div>
+
+<div class="directory-layout">
+    <div class="directory-main">
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Categories</h2>
+                <span class="tag">{{ categories|length }}</span>
+            </div>
+
+            {% if categories %}
+                <div class="directory-list">
+                    {% for category in categories %}
+                        <article class="directory-item{{ category.status == 'archived' ? ' directory-item-archived' : '' }}">
+                            <div class="directory-head">
+                                <div>
+                                    <h3>{{ category.name }}</h3>
+                                    <p class="muted">
+                                        {{ category.team ? category.team.name : 'No team' }} ·
+                                        {{ category.default_priority_label ? category.default_priority_label : 'No default priority' }}
+                                    </p>
+                                </div>
+                                {% if category.status == 'active' %}
+                                    <form method="post" action="{{ route('categories.archive', {id: category.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button class="link-button danger" type="submit">Archive</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{{ route('categories.update', {id: category.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="PATCH">
+                                        <input type="hidden" name="status" value="active">
+                                        <button class="link-button" type="submit">Restore</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                            <form class="inline-form" method="post" action="{{ route('categories.update', {id: category.id}) }}">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="_method" value="PATCH">
+                                <div class="field">
+                                    <label for="category-{{ category.id }}-name">Name</label>
+                                    <input id="category-{{ category.id }}-name" name="name" type="text" value="{{ category.name }}" maxlength="120" required>
+                                </div>
+                                <div class="field">
+                                    <label for="category-{{ category.id }}-team">Team</label>
+                                    <select id="category-{{ category.id }}-team" name="team_id">
+                                        <option value="">No team</option>
+                                        {% for team in teams %}
+                                            <option value="{{ team.id }}"{{ category.team and category.team.id == team.id ? ' selected' : '' }}>{{ team.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="category-{{ category.id }}-priority">Default priority</label>
+                                    <select id="category-{{ category.id }}-priority" name="default_priority">
+                                        <option value="">Use ticket default</option>
+                                        {% for priority in priorities %}
+                                            <option value="{{ priority.code }}"{{ category.default_priority == priority.code ? ' selected' : '' }}>{{ priority.label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button class="button button-quiet" type="submit">Save</button>
+                            </form>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">No categories yet.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Sites</h2>
+                <span class="tag">{{ sites|length }}</span>
+            </div>
+
+            {% if sites %}
+                <div class="directory-list">
+                    {% for site in sites %}
+                        <article class="directory-item{{ site.status == 'archived' ? ' directory-item-archived' : '' }}">
+                            <div class="directory-head">
+                                <div>
+                                    <h3>{{ site.name }}</h3>
+                                    <p class="muted">{{ site.address ? site.address : 'No address' }} · {{ site.team_count }} team{{ site.team_count == 1 ? '' : 's' }}</p>
+                                </div>
+                                {% if site.status == 'active' %}
+                                    <form method="post" action="{{ route('sites.archive', {id: site.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button class="link-button danger" type="submit">Archive</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{{ route('sites.update', {id: site.id}) }}">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="_method" value="PATCH">
+                                        <input type="hidden" name="status" value="active">
+                                        <button class="link-button" type="submit">Restore</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                            <form class="inline-form" method="post" action="{{ route('sites.update', {id: site.id}) }}">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="_method" value="PATCH">
+                                <div class="field">
+                                    <label for="site-{{ site.id }}-name">Name</label>
+                                    <input id="site-{{ site.id }}-name" name="name" type="text" value="{{ site.name }}" maxlength="120" required>
+                                </div>
+                                <div class="field">
+                                    <label for="site-{{ site.id }}-address">Address</label>
+                                    <input id="site-{{ site.id }}-address" name="address" type="text" value="{{ site.address }}" maxlength="255">
+                                </div>
+                                <button class="button button-quiet" type="submit">Save</button>
+                            </form>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">No sites yet.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <aside class="directory-side">
+        <section class="panel">
+            <h2>New category</h2>
+            <form method="post" action="{{ route('categories.store') }}" class="side-form">
+                {{ csrf_field() }}
+                <div class="field">
+                    <label for="new-category-name">Name</label>
+                    <input id="new-category-name" name="name" type="text" value="{{ old('name') }}" maxlength="120" required>
+                </div>
+                <div class="field">
+                    <label for="new-category-team">Default team</label>
+                    <select id="new-category-team" name="team_id">
+                        <option value="">No team</option>
+                        {% for team in teams %}
+                            <option value="{{ team.id }}"{{ old('team_id') == team.id ? ' selected' : '' }}>{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="new-category-priority">Default priority</label>
+                    <select id="new-category-priority" name="default_priority">
+                        <option value="">Use ticket default</option>
+                        {% for priority in priorities %}
+                            <option value="{{ priority.code }}"{{ old('default_priority') == priority.code ? ' selected' : '' }}>{{ priority.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="button" type="submit">Create category</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>New site</h2>
+            <form method="post" action="{{ route('sites.store') }}" class="side-form">
+                {{ csrf_field() }}
+                <div class="field">
+                    <label for="new-site-name">Name</label>
+                    <input id="new-site-name" name="name" type="text" value="{{ old('name') }}" maxlength="120" required>
+                </div>
+                <div class="field">
+                    <label for="new-site-address">Address <span class="optional">optional</span></label>
+                    <input id="new-site-address" name="address" type="text" value="{{ old('address') }}" maxlength="255">
+                </div>
+                <button class="button" type="submit">Create site</button>
+            </form>
+        </section>
+    </aside>
+</div>
+{% endblock %}

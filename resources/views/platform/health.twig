@@ -1,0 +1,62 @@
+{% extends 'platform/layout.twig' %}
+
+{% block title %}Platform health — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Platform</p>
+        <h1 class="page-title">Health</h1>
+        <p class="page-lede">Checked {{ health.checked_at|date('j M Y, H:i:s') }} UTC.</p>
+    </div>
+</div>
+
+<section class="stat-grid" aria-label="Health status">
+    <div class="stat{{ health.database.reachable ? '' : ' stat-danger' }}">
+        <span class="stat-label">Database</span>
+        <strong class="stat-value">{{ health.database.reachable ? 'Up' : 'Down' }}</strong>
+        <span class="stat-note">{{ health.database.reachable ? 'Queries responding' : 'Cannot reach the database' }}</span>
+    </div>
+    <div class="stat{{ health.outbox.failed > 0 ? ' stat-danger' : '' }}">
+        <span class="stat-label">Outbox failed</span>
+        <strong class="stat-value">{{ health.outbox.failed }}</strong>
+        <span class="stat-note">{{ health.outbox.pending }} queued · {{ health.outbox.processing }} processing</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Outbox sent</span>
+        <strong class="stat-value">{{ health.outbox.sent }}</strong>
+        <span class="stat-note">{{ health.outbox.total }} total records</span>
+    </div>
+    <div class="stat">
+        <span class="stat-label">Environment</span>
+        <strong class="stat-value">{{ health.app.environment }}</strong>
+        <span class="stat-note">{{ health.app.name }}</span>
+    </div>
+</section>
+
+<section class="panel">
+    <h2>Backups</h2>
+    {% if health.last_backup_at %}
+        <p>Last backup: {{ health.last_backup_at }}</p>
+    {% else %}
+        <p class="muted">No backup status is recorded. Check the server's scheduled backups separately.</p>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <h2>Outbox detail</h2>
+    <dl class="details">
+        <dt>Pending</dt>
+        <dd>{{ health.outbox.pending }}</dd>
+        <dt>Processing</dt>
+        <dd>{{ health.outbox.processing }}</dd>
+        <dt>Failed</dt>
+        <dd>{{ health.outbox.failed }}</dd>
+        <dt>Sent</dt>
+        <dd>{{ health.outbox.sent }}</dd>
+        <dt>Total</dt>
+        <dd>{{ health.outbox.total }}</dd>
+    </dl>
+    <p class="field-hint">Run the outbox worker from the CLI. Failed messages retry with backoff before landing here.</p>
+</section>
+{% endblock %}

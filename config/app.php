@@ -16,6 +16,7 @@ return [
         'tenant' => \App\Http\Middleware\ResolveTenant::class,
         'csrf' => \App\Http\Middleware\VerifyCsrf::class,
         'throttle.login' => \App\Http\Middleware\ThrottleLogin::class,
+        'platform' => \App\Http\Middleware\RequirePlatformAdmin::class,
     ],
 
     'log' => [

@@ -11,8 +11,20 @@
         </div>
 
         <nav class="app-nav" aria-label="Workspace">
+            <a href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>Dashboard</a>
             <a href="{{ route('tickets.index') }}"{{ nav == 'tickets' ? ' aria-current="page"' : '' }}>Tickets</a>
-            <a href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>Workspace</a>
+            {% if can('teams.manage') %}
+                <a href="{{ route('teams.index') }}"{{ nav == 'teams' ? ' aria-current="page"' : '' }}>Teams</a>
+            {% endif %}
+            {% if can('members.manage') %}
+                <a href="{{ route('members.index') }}"{{ nav == 'members' ? ' aria-current="page"' : '' }}>Members</a>
+            {% endif %}
+            {% if can('categories.manage') %}
+                <a href="{{ route('categories.index') }}"{{ nav == 'categories' ? ' aria-current="page"' : '' }}>Categories</a>
+            {% endif %}
+            {% if can('audit.view') %}
+                <a href="{{ route('audit.index') }}"{{ nav == 'audit' ? ' aria-current="page"' : '' }}>Audit</a>
+            {% endif %}
             {% if can('settings.manage') %}
                 <a href="{{ route('settings.show') }}"{{ nav == 'settings' ? ' aria-current="page"' : '' }}>Settings</a>
             {% endif %}

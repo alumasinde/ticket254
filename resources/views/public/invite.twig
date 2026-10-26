@@ -1,0 +1,108 @@
+{% extends 'layouts/public.twig' %}
+
+{% block title %}Join {{ invitation.workspace_name }} — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="public-wrap">
+    <header class="public-head">
+        <p class="eyebrow">Invitation</p>
+        <h1 class="auth-title">Join {{ invitation.workspace_name }}</h1>
+        <p class="muted">
+            Invited as <strong>{{ invitation.role }}</strong>
+            {% if invitation.teams %} · team{{ invitation.teams|length > 1 ? 's' : '' }}: {{ invitation.teams|join(', ') }}{% endif %}
+            · for {{ invitation.email }}
+        </p>
+        {% if invitation.inviter %}
+            <p class="field-hint">Invited by {{ invitation.inviter }}{% if invitation.expires_at %} · expires {{ invitation.expires_at|date('j M Y') }}{% endif %}</p>
+        {% endif %}
+    </header>
+
+    {% if errors %}
+        <div class="alert" role="alert">
+            <p>Please check the form.</p>
+            <ul>
+                {% for field, message in errors %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <section class="panel public-form">
+        {% if invitation.workspace_unavailable %}
+            <p class="muted">This workspace is not accepting new members right now. Contact the person who invited you.</p>
+        {% elseif invitation.must_sign_in %}
+            <p>This invitation is for <strong>{{ invitation.email }}</strong>.</p>
+            {% if invitation.signed_in %}
+                <p class="muted">You are signed in with a different account. Sign out, then sign in as {{ invitation.email }} to accept.</p>
+                <div class="actions">
+                    <form method="post" action="{{ route('logout') }}">
+                        {{ csrf_field() }}
+                        <button class="button button-quiet" type="submit">Sign out</button>
+                    </form>
+                    <a class="button" href="{{ route('login') }}">Sign in</a>
+                </div>
+            {% else %}
+                <p class="muted">Sign in with the invited email address to accept.</p>
+                <div class="actions">
+                    <a class="button" href="{{ route('login') }}">Sign in</a>
+                </div>
+            {% endif %}
+        {% elseif invitation.can_accept %}
+            <p>You are signed in as {{ invitation.email }}. Accept to join {{ invitation.workspace_name }}.</p>
+            <form method="post" action="{{ route('public.invite.accept', {token: invitation.token}) }}">
+                {{ csrf_field() }}
+                <div class="form-actions">
+                    <button class="button" type="submit">Accept invitation</button>
+                </div>
+            </form>
+        {% elseif invitation.signed_in %}
+            <p>You are signed in with a different account. Sign out, then create your account with <strong>{{ invitation.email }}</strong> to join {{ invitation.workspace_name }}.</p>
+            <div class="actions">
+                <form method="post" action="{{ route('logout') }}">
+                    {{ csrf_field() }}
+                    <button class="button button-quiet" type="submit">Sign out</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="muted">Create your account with this email address to join the workspace.</p>
+            <form method="post" action="{{ route('public.invite.accept', {token: invitation.token}) }}">
+                {{ csrf_field() }}
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="first_name">First name</label>
+                        <input id="first_name" name="first_name" type="text" value="{{ old('first_name') }}" maxlength="100" autocomplete="given-name" required>
+                    </div>
+                    <div class="field">
+                        <label for="last_name">Last name</label>
+                        <input id="last_name" name="last_name" type="text" value="{{ old('last_name') }}" maxlength="100" autocomplete="family-name" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" value="{{ invitation.email }}" readonly>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" minlength="10" autocomplete="new-password" required>
+                    <p class="field-hint">At least 10 characters.</p>
+                </div>
+
+                <div class="field">
+                    <label for="password_confirmation">Confirm password</label>
+                    <input id="password_confirmation" name="password_confirmation" type="password" minlength="10" autocomplete="new-password" required>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button" type="submit">Create account and join</button>
+                </div>
+            </form>
+        {% endif %}
+    </section>
+
+    <p class="public-foot">Powered by {{ config('app.name') }}</p>
+</div>
+{% endblock %}

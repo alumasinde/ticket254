@@ -45,24 +45,37 @@ final class RateLimiterTest extends TestCase
         }
     }
 
-    public function test_an_expired_window_resets_the_counter(): void
+    public function test_prune_removes_only_windows_past_the_grace_period(): void
     {
         /** @var RateLimiter $limiter */
         $limiter = $this->app->container()->get(RateLimiter::class);
-        $key = 'probe:' . bin2hex(random_bytes(6));
+        $suffix = bin2hex(random_bytes(6));
+        $old = 'prune:old:' . $suffix;
+        $recent = 'prune:recent:' . $suffix;
+        $active = 'prune:active:' . $suffix;
 
-        $limiter->attempt([$key], 1, 60);
-        $this->assertNotNull($limiter->attempt([$key], 1, 60));
+        $this->db()->table('rate_limits')->insert([
+            'limiter_key' => $old,
+            'hits' => 3,
+            'window_started_at' => gmdate('Y-m-d H:i:s', time() - 3 * 86400),
+            'expires_at' => gmdate('Y-m-d H:i:s', time() - 2 * 86400),
+        ]);
+        $this->db()->table('rate_limits')->insert([
+            'limiter_key' => $recent,
+            'hits' => 1,
+            'window_started_at' => gmdate('Y-m-d H:i:s', time() - 7200),
+            'expires_at' => gmdate('Y-m-d H:i:s', time() - 3600),
+        ]);
+        $this->db()->table('rate_limits')->insert([
+            'limiter_key' => $active,
+            'hits' => 1,
+            'window_started_at' => gmdate('Y-m-d H:i:s'),
+            'expires_at' => gmdate('Y-m-d H:i:s', time() + 3600),
+        ]);
 
-        $this->db()->statement(
-            'UPDATE rate_limits SET expires_at = ? WHERE limiter_key = ?',
-            [gmdate('Y-m-d H:i:s', time() - 60), $key],
-        );
-
-        $this->assertNull($limiter->attempt([$key], 1, 60));
-
-        $row = $this->db()->table('rate_limits')->where('limiter_key', $key)->first();
-        $this->assertNotNull($row);
-        $this->assertSame(1, (int) $row['hits']);
+        $this->assertSame(1, $limiter->prune(1));
+        $this->assertNull($this->db()->table('rate_limits')->where('limiter_key', $old)->first());
+        $this->assertNotNull($this->db()->table('rate_limits')->where('limiter_key', $recent)->first());
+        $this->assertNotNull($this->db()->table('rate_limits')->where('limiter_key', $active)->first());
     }
 }

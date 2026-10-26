@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Router;
 use App\Http\Controllers\Api\PublicController;
+use App\Http\Controllers\PublicSite\InvitationController;
 use App\Http\Controllers\PublicSite\RequestController;
 use App\Http\Controllers\PublicSite\TrackingController;
 
@@ -45,4 +46,11 @@ $router->get('/track/{token}', [TrackingController::class, 'show'])
 
 $router->post('/track/{token}', [TrackingController::class, 'reply'])
     ->name('public.track.reply')
+    ->middleware('csrf');
+
+$router->get('/invite/{token}', [InvitationController::class, 'show'])
+    ->name('public.invite.show');
+
+$router->post('/invite/{token}', [InvitationController::class, 'accept'])
+    ->name('public.invite.accept')
     ->middleware('csrf');

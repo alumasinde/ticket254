@@ -47,11 +47,21 @@ final class TenantIsolationTest extends TestCase
         $content = $response->content();
 
         $this->assertStringContainsString('Glee Hotel', $content);
-        $this->assertStringContainsString('Glee Security', $content);
-        $this->assertStringContainsString('Glee Concierge', $content);
         $this->assertStringNotContainsString('Savannah Lodge', $content);
-        $this->assertStringNotContainsString('Savannah Spa', $content);
-        $this->assertStringNotContainsString('Savannah Excursions', $content);
+
+        $teams = $this->get('/app/teams?tenant_id=' . $this->savannah['tenant_id'], [
+            'X-Tenant-Id' => (string) $this->savannah['tenant_id'],
+        ]);
+        $this->assertSame(200, $teams->status());
+        $this->assertStringContainsString('Glee Security', $teams->content());
+        $this->assertStringNotContainsString('Savannah Spa', $teams->content());
+
+        $categories = $this->get('/app/categories?tenant_id=' . $this->savannah['tenant_id'], [
+            'X-Tenant-Id' => (string) $this->savannah['tenant_id'],
+        ]);
+        $this->assertSame(200, $categories->status());
+        $this->assertStringContainsString('Glee Concierge', $categories->content());
+        $this->assertStringNotContainsString('Savannah Excursions', $categories->content());
 
         $context = $this->app->container()->get(TenantContext::class);
         $this->assertSame($this->glee['tenant_id'], $context->tenantId);

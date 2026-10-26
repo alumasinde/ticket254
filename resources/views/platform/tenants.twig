@@ -1,0 +1,72 @@
+{% extends 'platform/layout.twig' %}
+
+{% block title %}Workspaces — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Platform</p>
+        <h1 class="page-title">Workspaces</h1>
+        <p class="page-lede">{{ tenants|length }} workspace{{ tenants|length == 1 ? '' : 's' }} matching the current filter.</p>
+    </div>
+</div>
+
+<form class="filters" method="get" action="{{ route('platform.tenants') }}">
+    <div class="filters-row platform-filters">
+        <div class="field">
+            <label for="q">Search</label>
+            <input id="q" name="q" type="search" value="{{ filters.q }}" maxlength="120" placeholder="Name or slug">
+        </div>
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">All statuses</option>
+                {% for status in ['active', 'suspended', 'closed'] %}
+                    <option value="{{ status }}"{{ filters.status == status ? ' selected' : '' }}>{{ status|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="button" type="submit">Filter</button>
+            <a class="button button-quiet" href="{{ route('platform.tenants') }}">Reset</a>
+        </div>
+    </div>
+</form>
+
+{% if tenants %}
+    <div class="table-wrap">
+        <table class="ticket-table">
+            <thead>
+                <tr>
+                    <th>Workspace</th>
+                    <th>Plan</th>
+                    <th>Agents</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tenant in tenants %}
+                    <tr>
+                        <td data-label="Workspace">
+                            <a class="ticket-subject" href="{{ route('platform.tenants.show', {id: tenant.id}) }}">{{ tenant.name }}</a>
+                            <span class="ticket-requester">{{ tenant.slug }}</span>
+                        </td>
+                        <td data-label="Plan">{{ tenant.plan ? tenant.plan.name : 'No plan' }}</td>
+                        <td data-label="Agents">{{ tenant.agents }}</td>
+                        <td data-label="Created">{{ tenant.created_at ? tenant.created_at|date('j M Y') : '—' }}</td>
+                        <td data-label="Status">
+                            <span class="badge{{ tenant.status == 'active' ? ' status-resolved' : '' }}{{ tenant.status == 'suspended' ? ' badge-overdue' : '' }}">{{ tenant.status }}</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <h2>No workspaces found</h2>
+        <p class="muted">Try a different search or clear the status filter.</p>
+    </div>
+{% endif %}
+{% endblock %}

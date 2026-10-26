@@ -1,0 +1,141 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Teams — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1 class="page-title">Teams</h1>
+        <p class="page-lede">Teams route tickets to the people who handle them. Archived teams keep their ticket history.</p>
+    </div>
+</div>
+
+<div class="directory-layout">
+    <div class="directory-main">
+        {% if teams %}
+            <div class="directory-list">
+                {% for team in teams %}
+                    <section class="panel directory-item{{ team.status == 'archived' ? ' directory-item-archived' : '' }}">
+                        <div class="directory-head">
+                            <div>
+                                <h2>{{ team.name }}</h2>
+                                <p class="muted">
+                                    {{ team.site ? team.site.name : 'No site' }} · {{ team.member_count }} member{{ team.member_count == 1 ? '' : 's' }}
+                                    {% if team.status == 'archived' %}<span class="badge">Archived</span>{% endif %}
+                                </p>
+                            </div>
+                            {% if team.status == 'active' %}
+                                <form method="post" action="{{ route('teams.archive', {id: team.id}) }}">
+                                    {{ csrf_field() }}
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button class="link-button danger" type="submit">Archive</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{{ route('teams.update', {id: team.id}) }}">
+                                    {{ csrf_field() }}
+                                    <input type="hidden" name="_method" value="PATCH">
+                                    <input type="hidden" name="status" value="active">
+                                    <button class="link-button" type="submit">Restore</button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        {% if team.status == 'active' %}
+                            <form class="inline-form" method="post" action="{{ route('teams.update', {id: team.id}) }}">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="_method" value="PATCH">
+                                <input type="hidden" name="team_id" value="{{ team.id }}">
+                                <div class="field">
+                                    <label for="team-{{ team.id }}-name">Name</label>
+                                    <input id="team-{{ team.id }}-name" name="name" type="text" value="{{ team.name }}" maxlength="120" required>
+                                    {% if errors.name is defined and old('team_id') == team.id %}<p class="field-error">{{ errors.name }}</p>{% endif %}
+                                </div>
+                                <div class="field">
+                                    <label for="team-{{ team.id }}-site">Site</label>
+                                    <select id="team-{{ team.id }}-site" name="site_id">
+                                        <option value="">No site</option>
+                                        {% for site in sites %}
+                                            <option value="{{ site.id }}"{{ team.site and team.site.id == site.id ? ' selected' : '' }}>{{ site.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button class="button button-quiet" type="submit">Save</button>
+                            </form>
+
+                            <div class="member-block">
+                                <h3>Members</h3>
+                                {% if team.members %}
+                                    <ul class="member-chips">
+                                        {% for member in team.members %}
+                                            <li>
+                                                <span>{{ member.name }}</span>
+                                                <form method="post" action="{{ route('teams.members.delete', {id: team.id, userId: member.id}) }}">
+                                                    {{ csrf_field() }}
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <button class="chip-remove" type="submit" aria-label="Remove {{ member.name }} from {{ team.name }}">×</button>
+                                                </form>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="muted">No members yet.</p>
+                                {% endif %}
+
+                                <form class="inline-form" method="post" action="{{ route('teams.members.store', {id: team.id}) }}">
+                                    {{ csrf_field() }}
+                                    <div class="field">
+                                        <label for="team-{{ team.id }}-member">Add member</label>
+                                        <select id="team-{{ team.id }}-member" name="user_id" required>
+                                            <option value="">Choose a member</option>
+                                            {% for member in members %}
+                                                <option value="{{ member.id }}">{{ member.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button class="button button-quiet" type="submit">Add to team</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>No teams yet</h2>
+                <p class="muted">Create the first team to route tickets to a group of agents.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <aside class="directory-side">
+        <section class="panel">
+            <h2>New team</h2>
+            <form method="post" action="{{ route('teams.store') }}" class="side-form">
+                {{ csrf_field() }}
+                <div class="field">
+                    <label for="new-team-name">Name</label>
+                    <input id="new-team-name" name="name" type="text" value="{{ old('name') }}" maxlength="120" required>
+                    {% if errors.name is defined and old('team_id') is empty %}<p class="field-error">{{ errors.name }}</p>{% endif %}
+                </div>
+                <div class="field">
+                    <label for="new-team-site">Site <span class="optional">optional</span></label>
+                    <select id="new-team-site" name="site_id">
+                        <option value="">No site</option>
+                        {% for site in sites %}
+                            <option value="{{ site.id }}"{{ old('site_id') == site.id ? ' selected' : '' }}>{{ site.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="button" type="submit">Create team</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>How routing works</h2>
+            <p class="muted small">A ticket belongs to one team and can have one assignee. Agents see tickets assigned to them or to their teams.</p>
+            <p class="muted small">Archiving a team does not delete tickets. Existing tickets keep their team and history.</p>
+        </section>
+    </aside>
+</div>
+{% endblock %}
