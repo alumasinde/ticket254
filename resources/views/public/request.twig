@@ -1,0 +1,107 @@
+{% extends 'layouts/public.twig' %}
+
+{% block title %}{{ t('public.request.title') }} — {{ workspace_name }}{% endblock %}
+
+{% block content %}
+<div class="public-wrap">
+    <header class="public-head">
+        <p class="eyebrow">{{ workspace_name }}</p>
+        <h1 class="auth-title">{{ t('public.request.title') }}</h1>
+        <p class="auth-lede">{{ t('public.request.lede') }}</p>
+    </header>
+
+    {% if errors %}
+        <div class="alert" role="alert">
+            <p>Please correct the highlighted fields.</p>
+        </div>
+    {% endif %}
+
+    <form class="public-form panel" method="post" action="{{ form_action }}" enctype="multipart/form-data">
+        {{ csrf_field() }}
+
+        <div class="honeypot" aria-hidden="true">
+            <label for="website">Website</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="form-grid">
+            <div class="field">
+                <label for="requester_name">{{ t('public.request.name') }}</label>
+                <input id="requester_name" name="requester_name" type="text" value="{{ old('requester_name') }}" maxlength="160" required autocomplete="name">
+                {% if errors.requester_name is defined %}<p class="field-error">{{ errors.requester_name }}</p>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="requester_email">{{ t('public.request.email') }}</label>
+                <input id="requester_email" name="requester_email" type="email" value="{{ old('requester_email') }}" maxlength="254" required autocomplete="email">
+                {% if config.requires_work_email %}
+                    <p class="field-hint">{{ t('public.request.email_hint', {domain: config.email_domain_hint}) }}</p>
+                {% endif %}
+                {% if errors.requester_email is defined %}<p class="field-error">{{ errors.requester_email }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field">
+                <label for="requester_phone">{{ t('public.request.phone') }} <span class="optional">{{ t('public.request.optional') }}</span></label>
+                <input id="requester_phone" name="requester_phone" type="tel" value="{{ old('requester_phone') }}" maxlength="32" autocomplete="tel">
+                {% if errors.requester_phone is defined %}<p class="field-error">{{ errors.requester_phone }}</p>{% endif %}
+            </div>
+
+            {% if config.sites %}
+                <div class="field">
+                    <label for="site_id">{{ t('public.request.site') }} <span class="optional">{{ t('public.request.optional') }}</span></label>
+                    <select id="site_id" name="site_id">
+                        <option value="">—</option>
+                        {% for site in config.sites %}
+                            <option value="{{ site.id }}"{{ old('site_id') == site.id ? ' selected' : '' }}>{{ site.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.site_id is defined %}<p class="field-error">{{ errors.site_id }}</p>{% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if config.categories %}
+            <div class="field">
+                <label for="category_id">{{ t('public.request.category') }} <span class="optional">{{ t('public.request.optional') }}</span></label>
+                <select id="category_id" name="category_id">
+                    <option value="">—</option>
+                    {% for category in config.categories %}
+                        <option value="{{ category.id }}"{{ old('category_id') == category.id ? ' selected' : '' }}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if errors.category_id is defined %}<p class="field-error">{{ errors.category_id }}</p>{% endif %}
+            </div>
+        {% endif %}
+
+        <div class="field">
+            <label for="subject">{{ t('public.request.subject') }}</label>
+            <input id="subject" name="subject" type="text" value="{{ old('subject') }}" maxlength="200" required>
+            {% if errors.subject is defined %}<p class="field-error">{{ errors.subject }}</p>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="description">{{ t('public.request.description') }}</label>
+            <textarea id="description" name="description" rows="6" maxlength="20000" required>{{ old('description') }}</textarea>
+            {% if errors.description is defined %}<p class="field-error">{{ errors.description }}</p>{% endif %}
+        </div>
+
+        {% if config.attachments_enabled %}
+            <div class="field">
+                <label for="photo">{{ t('public.request.photo') }} <span class="optional">{{ t('public.request.optional') }}</span></label>
+                <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.pdf,.txt">
+                <p class="field-hint">{{ t('public.request.photo_hint', {max: max_mb}) }}</p>
+                {% if errors.photo is defined %}<p class="field-error">{{ errors.photo }}</p>{% endif %}
+            </div>
+        {% endif %}
+
+        <div class="form-actions public-actions">
+            <button class="button" type="submit">{{ t('public.request.submit') }}</button>
+            <p class="field-hint">{{ t('public.request.note') }}</p>
+        </div>
+    </form>
+
+    <p class="public-foot">{{ t('public.request.footer', {app: config('app.name')}) }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'layouts/public.twig' %}
+
+{% block title %}{{ t('public.unavailable.title') }}{% endblock %}
+
+{% block content %}
+<div class="public-wrap">
+    <header class="public-head">
+        <h1 class="auth-title">{{ t('public.unavailable.title') }}</h1>
+        <p class="auth-lede">{{ t('public.unavailable.body') }}</p>
+    </header>
+</div>
+{% endblock %}

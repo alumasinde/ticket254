@@ -1,0 +1,8 @@
+{% extends 'mail/layout.twig' %}
+
+{% block content %}
+    <p style="margin:0 0 12px;">{{ requester_name }} replied to request <strong>{{ reference }}</strong> — {{ subject }}.</p>
+    <div style="margin:0 0 16px;padding:12px 14px;border-left:3px solid #14532d;background:#e3ece5;white-space:pre-line;">{{ body }}</div>
+    <p style="margin:0 0 16px;">Open the ticket to read the full conversation and respond.</p>
+    <p style="margin:0;font-size:13px;"><a href="{{ staff_url }}">{{ staff_url }}</a></p>
+{% endblock %}

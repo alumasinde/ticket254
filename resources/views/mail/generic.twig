@@ -1,0 +1,17 @@
+{% extends 'mail/layout.twig' %}
+
+{% block content %}
+    <p style="margin:0 0 12px;">There is an update on your support request.</p>
+    {% if reference|default('') %}
+        <p style="margin:0 0 4px;"><strong>{{ reference }}</strong></p>
+    {% endif %}
+    {% if subject|default('') %}
+        <p style="margin:0 0 12px;">{{ subject }}</p>
+    {% endif %}
+    {% if body|default('') %}
+        <div style="margin:0 0 16px;padding:12px 14px;border-left:3px solid #14532d;background:#e3ece5;white-space:pre-line;">{{ body }}</div>
+    {% endif %}
+    {% if tracking_url|default('') %}
+        <p style="margin:0;font-size:13px;"><a href="{{ tracking_url }}">{{ tracking_url }}</a></p>
+    {% endif %}
+{% endblock %}

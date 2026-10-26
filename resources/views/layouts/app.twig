@@ -13,6 +13,9 @@
         <nav class="app-nav" aria-label="Workspace">
             <a href="{{ route('tickets.index') }}"{{ nav == 'tickets' ? ' aria-current="page"' : '' }}>Tickets</a>
             <a href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>Workspace</a>
+            {% if can('settings.manage') %}
+                <a href="{{ route('settings.show') }}"{{ nav == 'settings' ? ' aria-current="page"' : '' }}>Settings</a>
+            {% endif %}
         </nav>
 
         <div class="app-user">

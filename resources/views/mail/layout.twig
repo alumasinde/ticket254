@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ email_subject }}</title>
+</head>
+<body style="margin:0;padding:24px 12px;background:#f7f6f1;color:#1f2a24;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;line-height:1.55;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+        <tr>
+            <td style="padding:0 0 12px;font-size:13px;font-weight:600;color:#14532d;">{{ workspace_name }}</td>
+        </tr>
+        <tr>
+            <td style="padding:20px;border:1px solid #d7d5cc;border-radius:6px;background:#fbfaf6;font-size:15px;">
+                {% block content %}{% endblock %}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:14px 0 0;font-size:12px;color:#5e6a63;">
+                This message was sent by {{ workspace_name }} through {{ config('app.name') }}.
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

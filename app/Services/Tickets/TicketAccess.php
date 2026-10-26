@@ -43,4 +43,33 @@ final class TicketAccess
 
         return (int) ($ticket['assigned_user_id'] ?? 0) === $ctx->userId;
     }
+
+    /**
+     * Assigning to anyone, or changing the team, needs tickets.assign.
+     * tickets.assign_self only allows claiming a ticket for yourself within your own teams.
+     *
+     * @param array<string, mixed> $ticket
+     */
+    public function canAssign(
+        TenantContext $ctx,
+        array $ticket,
+        ?int $teamId,
+        bool $teamProvided,
+        ?int $assignedUserId,
+    ): bool {
+        if ($ctx->can('tickets.assign')) {
+            return true;
+        }
+
+        if (!$ctx->can('tickets.assign_self') || $assignedUserId !== $ctx->userId) {
+            return false;
+        }
+
+        $effectiveTeam = $teamProvided
+            ? $teamId
+            : (($ticket['team_id'] ?? null) === null ? null : (int) $ticket['team_id']);
+
+        return $effectiveTeam === null
+            || in_array($effectiveTeam, $this->memberships->teamIdsForUser($ctx->tenantId, $ctx->userId), true);
+    }
 }

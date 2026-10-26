@@ -33,6 +33,13 @@ abstract class TestCase extends BaseTestCase
         $this->db()->statement('DELETE FROM rate_limits');
     }
 
+    protected function tearDown(): void
+    {
+        $this->db()->disconnect();
+
+        parent::tearDown();
+    }
+
     /**
      * @param array<string, mixed> $data
      * @param array<string, string> $headers

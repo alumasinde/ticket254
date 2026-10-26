@@ -1,0 +1,12 @@
+Hello,
+
+There is an update on your support request.
+
+{% if reference|default('') %}Reference: {{ reference }}
+{% endif %}{% if subject|default('') %}Subject: {{ subject }}
+{% endif %}
+{% if body|default('') %}{{ body }}
+{% endif %}
+{% if tracking_url|default('') %}{{ tracking_url }}
+{% endif %}
+{{ workspace_name }}

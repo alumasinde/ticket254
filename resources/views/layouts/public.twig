@@ -1,0 +1,19 @@
+{% extends 'layouts/base.twig' %}
+
+{% block body_class %}public-body{% endblock %}
+
+{% block header %}
+<header class="public-bar">
+    <div class="public-bar-inner">
+        <span class="wordmark">{{ workspace_name }}</span>
+        {% if language_urls|length %}
+            <nav class="language-switch" aria-label="Language">
+                <a href="{{ language_urls.en }}"{{ locale == 'en' ? ' aria-current="true"' : '' }}>{{ t('public.language.english') }}</a>
+                <a href="{{ language_urls.sw }}"{{ locale == 'sw' ? ' aria-current="true"' : '' }}>{{ t('public.language.swahili') }}</a>
+            </nav>
+        {% endif %}
+    </div>
+</header>
+{% endblock %}
+
+{% block main_class %}public-main{% endblock %}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Router;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TicketController;
 
 /** @var Router $router */
@@ -42,4 +43,53 @@ $router->group(['prefix' => '/api/v1', 'middleware' => ['auth', 'tenant']], func
     $router->patch('/tickets/{ref}', [TicketController::class, 'update'])
         ->name('api.tickets.update')
         ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/assign', [TicketController::class, 'assign'])
+        ->name('api.tickets.assign')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/status', [TicketController::class, 'transition'])
+        ->name('api.tickets.status')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/priority', [TicketController::class, 'priority'])
+        ->name('api.tickets.priority')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/messages', [TicketController::class, 'message'])
+        ->name('api.tickets.messages')
+        ->middleware('csrf');
+
+    $router->get('/tickets/{ref}/attachments/{attachmentId}', [TicketController::class, 'download'])
+        ->name('api.tickets.attachments.download')
+        ->can('tickets.view_team');
+
+    $router->post('/tickets/{ref}/tracking-token/regenerate', [TicketController::class, 'regenerateTracking'])
+        ->name('api.tickets.tracking.regenerate')
+        ->middleware('csrf')
+        ->can('tickets.status');
+
+    $router->get('/settings', [SettingsController::class, 'show'])
+        ->name('api.settings.show')
+        ->can('settings.manage');
+
+    $router->patch('/settings', [SettingsController::class, 'update'])
+        ->name('api.settings.update')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->patch('/settings/public-form', [SettingsController::class, 'updatePublicForm'])
+        ->name('api.settings.public-form')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->post('/settings/public-form/regenerate', [SettingsController::class, 'regenerate'])
+        ->name('api.settings.public-form.regenerate')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->patch('/settings/slug', [SettingsController::class, 'updateSlug'])
+        ->name('api.settings.slug')
+        ->middleware('csrf')
+        ->can('settings.manage');
 });

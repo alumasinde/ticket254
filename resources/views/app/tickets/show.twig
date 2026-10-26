@@ -28,6 +28,82 @@
             <p class="description">{{ ticket.description }}</p>
         </section>
 
+        {% if ticket.attachments %}
+            <section class="panel">
+                <h2>Attachments</h2>
+                <ul class="attachment-list">
+                    {% for attachment in ticket.attachments %}
+                        <li>
+                            <a href="{{ route('api.tickets.attachments.download', {ref: ticket.reference, attachmentId: attachment.id}) }}">{{ attachment.original_name }}</a>
+                            <span class="muted">{{ (attachment.size_bytes / 1024)|round }} KB</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <section class="panel" id="conversation">
+            <h2>Conversation</h2>
+
+            {% if ticket.messages %}
+                <ul class="message-list">
+                    {% for message in ticket.messages %}
+                        <li class="message{{ message.visibility == 'internal' ? ' message-internal' : '' }}">
+                            <div class="message-head">
+                                <span class="message-author">{{ message.author ? message.author.name : 'System' }}</span>
+                                {% if message.visibility == 'internal' %}
+                                    <span class="badge badge-internal">Internal note</span>
+                                {% endif %}
+                                <span class="message-time">{{ message.created_at ? message.created_at|date('j M Y, H:i', workspace.timezone) : '—' }}</span>
+                            </div>
+                            <p class="message-body">{{ message.body }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% elseif not (can_reply or can_note) %}
+                <p class="muted">No replies yet.</p>
+            {% endif %}
+
+            {% if can_reply or can_note %}
+                <form class="message-form" method="post" action="{{ route('tickets.messages.store', {ref: ticket.reference}) }}">
+                    {{ csrf_field() }}
+
+                    {% if can_reply and can_note %}
+                        <div class="field">
+                            <label for="visibility">Message type</label>
+                            <select id="visibility" name="visibility">
+                                <option value="public">Public reply — emails the requester</option>
+                                <option value="internal">Internal note — staff only</option>
+                            </select>
+                            {% if errors.visibility is defined %}<p class="field-error">{{ errors.visibility }}</p>{% endif %}
+                        </div>
+                    {% elseif can_note %}
+                        <input type="hidden" name="visibility" value="internal">
+                    {% else %}
+                        <input type="hidden" name="visibility" value="public">
+                    {% endif %}
+
+                    <div class="field">
+                        <label for="body">Message</label>
+                        <textarea id="body" name="body" rows="4" maxlength="20000" required></textarea>
+                        {% if errors.body is defined %}<p class="field-error">{{ errors.body }}</p>{% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="button" type="submit">
+                            {%- if can_reply and can_note -%}
+                                Post message
+                            {%- elseif can_note -%}
+                                Add internal note
+                            {%- else -%}
+                                Send reply
+                            {%- endif -%}
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </section>
+
         <section class="panel">
             <h2>History</h2>
             {% if ticket.events %}
@@ -126,6 +202,22 @@
             </dl>
         </section>
 
+        {% if can_status %}
+            {% set tracking_url = flash('tracking_url') %}
+            <section class="panel">
+                <h2>Tracking link</h2>
+                {% if tracking_url %}
+                    <p class="field-hint">New link, shown once:</p>
+                    <p class="tracking-link"><a href="{{ tracking_url }}" target="_blank" rel="noopener">{{ tracking_url }}</a></p>
+                {% endif %}
+                <p class="muted">Regenerating revokes the requester's current link and issues a new one.</p>
+                <form method="post" action="{{ route('tickets.tracking.regenerate', {ref: ticket.reference}) }}">
+                    {{ csrf_field() }}
+                    <button class="button button-quiet" type="submit">Regenerate tracking link</button>
+                </form>
+            </section>
+        {% endif %}
+
         <section class="panel">
             <h2>Routing</h2>
             <dl class="details">
@@ -138,7 +230,114 @@
                 <dt>Site</dt>
                 <dd>{{ ticket.site ? ticket.site.name : '—' }}</dd>
             </dl>
+
+            {% if can_assign_any %}
+                <form class="side-form" method="post" action="{{ route('tickets.assign', {ref: ticket.reference}) }}">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="version" value="{{ ticket.version }}">
+
+                    <div class="field">
+                        <label for="team_id">Team</label>
+                        <select id="team_id" name="team_id">
+                            <option value="">No team</option>
+                            {% for team in teams %}
+                                {% if team.status == 'active' %}
+                                    <option value="{{ team.id }}"{{ ticket.team and ticket.team.id == team.id ? ' selected' : '' }}>{{ team.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% if errors.team_id is defined %}<p class="field-error">{{ errors.team_id }}</p>{% endif %}
+                    </div>
+
+                    <div class="field">
+                        <label for="assigned_user_id">Assignee</label>
+                        <select id="assigned_user_id" name="assigned_user_id">
+                            <option value="">Unassigned</option>
+                            {% for member in members %}
+                                <option value="{{ member.id }}"{{ ticket.assigned_user and ticket.assigned_user.id == member.id ? ' selected' : '' }}>{{ member.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.assigned_user_id is defined %}<p class="field-error">{{ errors.assigned_user_id }}</p>{% endif %}
+                        {% if errors.assignment is defined %}<p class="field-error">{{ errors.assignment }}</p>{% endif %}
+                    </div>
+
+                    <button class="button" type="submit">Save assignment</button>
+                </form>
+            {% elseif can_assign and (not ticket.assigned_user or ticket.assigned_user.id != user.id) %}
+                <form class="side-form" method="post" action="{{ route('tickets.assign', {ref: ticket.reference}) }}">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="version" value="{{ ticket.version }}">
+                    <input type="hidden" name="assigned_user_id" value="{{ user.id }}">
+                    {% if errors.assigned_user_id is defined %}<p class="field-error">{{ errors.assigned_user_id }}</p>{% endif %}
+                    <button class="button" type="submit">Assign to me</button>
+                </form>
+            {% endif %}
         </section>
+
+        {% if can_status or can_priority %}
+            <section class="panel">
+                <h2>Status</h2>
+
+                {% if can_status %}
+                    <form class="side-form" method="post" action="{{ route('tickets.status', {ref: ticket.reference}) }}">
+                        {{ csrf_field() }}
+                        <input type="hidden" name="version" value="{{ ticket.version }}">
+
+                        <div class="field">
+                            <label for="status">Next status</label>
+                            <select id="status" name="status" required>
+                                {% for status in allowed_statuses %}
+                                    <option value="{{ status.code }}">{{ status.label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.status is defined %}<p class="field-error">{{ errors.status }}</p>{% endif %}
+                        </div>
+
+                        {% if can_note %}
+                            <div class="field">
+                                <label for="status_note">Internal note <span class="optional">optional</span></label>
+                                <textarea id="status_note" name="note" rows="3" maxlength="5000"></textarea>
+                                {% if errors.note is defined %}<p class="field-error">{{ errors.note }}</p>{% endif %}
+                            </div>
+                        {% endif %}
+
+                        <button class="button" type="submit">Update status</button>
+                    </form>
+                {% else %}
+                    <p class="muted">You cannot change the status of this ticket.</p>
+                {% endif %}
+            </section>
+
+            {% if can_priority %}
+                <section class="panel">
+                    <h2>Priority &amp; due</h2>
+                    <form class="side-form" method="post" action="{{ route('tickets.priority', {ref: ticket.reference}) }}">
+                        {{ csrf_field() }}
+                        <input type="hidden" name="version" value="{{ ticket.version }}">
+
+                        <div class="field">
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority" required>
+                                {% for priority in priorities %}
+                                    <option value="{{ priority.code }}"{{ ticket.priority.code == priority.code ? ' selected' : '' }}>{{ priority.label }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.priority is defined %}<p class="field-error">{{ errors.priority }}</p>{% endif %}
+                        </div>
+
+                        <div class="field">
+                            <label for="due_at">Due <span class="optional">{{ workspace.timezone }}</span></label>
+                            <input id="due_at" name="due_at" type="datetime-local"
+                                   value="{{ ticket.due_at ? ticket.due_at|date('Y-m-d\\TH:i', workspace.timezone) : '' }}">
+                            <p class="field-hint">Leave blank to use the priority's default window.</p>
+                            {% if errors.due_at is defined %}<p class="field-error">{{ errors.due_at }}</p>{% endif %}
+                        </div>
+
+                        <button class="button" type="submit">Update priority</button>
+                    </form>
+                </section>
+            {% endif %}
+        {% endif %}
 
         <section class="panel">
             <h2>Dates</h2>
@@ -147,6 +346,14 @@
                 <dd>{{ ticket.created_at ? ticket.created_at|date('j M Y, H:i', workspace.timezone) : '—' }}</dd>
                 <dt>Updated</dt>
                 <dd>{{ ticket.updated_at ? ticket.updated_at|date('j M Y, H:i', workspace.timezone) : '—' }}</dd>
+                <dt>First reply</dt>
+                <dd>
+                    {% if ticket.first_response_at %}
+                        {{ ticket.first_response_at|date('j M Y, H:i', workspace.timezone) }}
+                    {% else %}
+                        <span class="muted">Not yet</span>
+                    {% endif %}
+                </dd>
                 <dt>Due</dt>
                 <dd>
                     {% if ticket.due_at %}

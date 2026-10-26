@@ -82,6 +82,7 @@ final class Request
         array $data = [],
         array $headers = [],
         array $cookies = [],
+        array $files = [],
     ): self {
         $path = parse_url($uri, PHP_URL_PATH);
         $queryString = parse_url($uri, PHP_URL_QUERY);
@@ -99,7 +100,7 @@ final class Request
             self::normalizePath(is_string($path) && $path !== '' ? $path : '/'),
             $query,
             $method === 'GET' ? [] : $data,
-            [],
+            $files,
             $headers,
             $cookies,
             [],

@@ -42,9 +42,11 @@ final class TicketPresenter
     /**
      * @param array<string, mixed> $row
      * @param list<array<string, mixed>> $events
+     * @param list<array<string, mixed>> $messages
+     * @param list<array<string, mixed>> $attachments
      * @return array<string, mixed>
      */
-    public static function detail(array $row, array $events): array
+    public static function detail(array $row, array $events, array $messages = [], array $attachments = []): array
     {
         $data = self::summary($row);
 
@@ -65,12 +67,53 @@ final class TicketPresenter
             'category' => $data['category'],
             'site' => self::named($row, 'site_id', 'site_name'),
             'due_at' => $data['due_at'],
+            'first_response_at' => self::iso($row['first_response_at'] ?? null),
             'resolved_at' => self::iso($row['resolved_at'] ?? null),
             'closed_at' => self::iso($row['closed_at'] ?? null),
             'is_overdue' => $data['is_overdue'],
             'created_at' => $data['created_at'],
             'updated_at' => $data['updated_at'],
+            'allowed_transitions' => TicketLifecycle::allowedFrom((string) $row['status_code']),
+            'messages' => array_map(self::message(...), $messages),
+            'attachments' => array_map(self::attachment(...), $attachments),
             'events' => array_map(self::event(...), $events),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $attachment
+     * @return array<string, mixed>
+     */
+    public static function attachment(array $attachment): array
+    {
+        return [
+            'id' => (int) $attachment['id'],
+            'original_name' => (string) $attachment['original_name'],
+            'mime_type' => (string) $attachment['mime_type'],
+            'size_bytes' => (int) $attachment['size_bytes'],
+            'created_at' => self::iso($attachment['created_at'] ?? null),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $message
+     * @return array<string, mixed>
+     */
+    public static function message(array $message): array
+    {
+        $name = trim((string) ($message['author_first_name'] ?? '') . ' ' . (string) ($message['author_last_name'] ?? ''));
+        $name = $name !== '' ? $name : (string) ($message['author_name'] ?? '');
+
+        return [
+            'id' => (int) $message['id'],
+            'visibility' => (string) $message['visibility'],
+            'source' => (string) $message['source'],
+            'author' => $message['author_user_id'] === null && $name === '' ? null : [
+                'id' => $message['author_user_id'] === null ? null : (int) $message['author_user_id'],
+                'name' => $name,
+            ],
+            'body' => (string) $message['body'],
+            'created_at' => self::iso($message['created_at'] ?? null),
         ];
     }
 
@@ -151,6 +194,10 @@ final class TicketPresenter
         $summary = match ($type) {
             'created' => 'Ticket created',
             'edited' => 'Details edited',
+            'status_changed' => 'Status changed to ' . (string) ($value['label'] ?? $value['status'] ?? ''),
+            'priority_changed' => 'Priority changed to ' . (string) ($value['label'] ?? $value['priority'] ?? ''),
+            'due_changed' => 'Due date changed',
+            'assigned' => self::assignmentSummary($value),
             default => ucfirst(str_replace('_', ' ', $type)),
         };
 
@@ -164,6 +211,29 @@ final class TicketPresenter
         }
 
         return $summary;
+    }
+
+    /**
+     * @param array<string, mixed>|null $value
+     */
+    private static function assignmentSummary(?array $value): string
+    {
+        $assignee = trim((string) ($value['assignee'] ?? ''));
+        $team = trim((string) ($value['team'] ?? ''));
+
+        if ($assignee !== '' && $team !== '') {
+            return 'Assigned to ' . $assignee . ' · ' . $team;
+        }
+
+        if ($assignee !== '') {
+            return 'Assigned to ' . $assignee;
+        }
+
+        if ($team !== '') {
+            return 'Team set to ' . $team;
+        }
+
+        return 'Assignment cleared';
     }
 
     private static function iso(mixed $value): ?string

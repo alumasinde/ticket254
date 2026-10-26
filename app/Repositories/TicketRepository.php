@@ -37,6 +37,57 @@ final class TicketRepository
         );
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findByNumberForTenant(int $tenantId, int $number): ?array
+    {
+        return $this->db->selectOne(
+            $this->selectSql() . ' WHERE t.tenant_id = ? AND t.ticket_number = ? LIMIT 1',
+            [$tenantId, $number],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findByIdForTenant(int $tenantId, int $id): ?array
+    {
+        return $this->db->selectOne(
+            $this->selectSql() . ' WHERE t.tenant_id = ? AND t.id = ? LIMIT 1',
+            [$tenantId, $id],
+        );
+    }
+
+    /**
+     * Updates a ticket outside optimistic locking, for requester actions on a tracking token.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function updateForTenant(int $tenantId, int $id, array $data): int
+    {
+        if ($data === []) {
+            return 0;
+        }
+
+        $allowed = ['status_id', 'resolved_at', 'closed_at'];
+        $assignments = [];
+
+        foreach ($data as $column => $value) {
+            if (!in_array($column, $allowed, true)) {
+                throw new RuntimeException("Ticket column [$column] cannot be updated without a version.");
+            }
+
+            $assignments[] = '`' . $column . '` = ?';
+        }
+
+        return $this->db->statement(
+            'UPDATE tickets SET ' . implode(', ', $assignments) . ', version = version + 1 '
+            . 'WHERE tenant_id = ? AND id = ?',
+            array_merge(array_values($data), [$tenantId, $id]),
+        )->rowCount();
+    }
+
     public function paginate(TenantContext $ctx, TicketFilters $filters): Paginator
     {
         [$where, $bindings] = $this->whereSql($ctx, $filters);
@@ -77,7 +128,11 @@ final class TicketRepository
             return 0;
         }
 
-        $allowed = ['subject', 'description', 'category_id', 'site_id'];
+        $allowed = [
+            'subject', 'description', 'category_id', 'site_id',
+            'team_id', 'assigned_user_id', 'status_id', 'priority_id',
+            'due_at', 'resolved_at', 'closed_at',
+        ];
 
         foreach (array_keys($data) as $column) {
             if (!in_array($column, $allowed, true)) {
@@ -229,6 +284,7 @@ final class TicketRepository
             . 'st.code AS status_code, st.label AS status_label, st.is_terminal AS status_terminal, '
             . 'pr.code AS priority_code, pr.label AS priority_label, pr.sort_order AS priority_sort, '
             . 'tm.name AS team_name, cat.name AS category_name, si.name AS site_name, '
-            . 'au.first_name AS assignee_first_name, au.last_name AS assignee_last_name';
+            . 'au.first_name AS assignee_first_name, au.last_name AS assignee_last_name, '
+            . 'au.email AS assignee_email';
     }
 }

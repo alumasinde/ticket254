@@ -117,4 +117,9 @@ final class Database
     {
         return $this->config['database'];
     }
+
+    public function disconnect(): void
+    {
+        $this->pdo = null;
+    }
 }

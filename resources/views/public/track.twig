@@ -1,0 +1,58 @@
+{% extends 'layouts/public.twig' %}
+
+{% block title %}{{ ticket.reference }} — {{ workspace_name }}{% endblock %}
+
+{% block content %}
+<div class="public-wrap">
+    <header class="public-head">
+        <p class="eyebrow">{{ workspace_name }}</p>
+        <h1 class="page-title">{{ ticket.subject }}</h1>
+        <p class="ticket-meta">
+            <span class="reference">{{ ticket.reference }}</span>
+            <span class="badge status-{{ ticket.status.code }}">{{ t('status.' ~ ticket.status.code) }}</span>
+        </p>
+        <p class="field-hint">{{ t('public.track.keep_link') }}</p>
+    </header>
+
+    <section class="panel">
+        <h2>{{ t('public.track.conversation') }}</h2>
+
+        {% if ticket.messages %}
+            <ul class="message-list">
+                {% for message in ticket.messages %}
+                    <li class="message{{ message.mine ? ' message-mine' : '' }}">
+                        <div class="message-head">
+                            <span class="message-author">{{ message.mine ? t('public.track.you') : t('public.track.support') }}</span>
+                            <span class="message-time">{{ message.created_at ? message.created_at|date('j M Y, H:i') : '—' }}</span>
+                        </div>
+                        <p class="message-body">{{ message.body }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">{{ t('public.track.no_messages') }}</p>
+        {% endif %}
+
+        {% if ticket.can_reply %}
+            <form class="message-form" method="post" action="{{ form_action }}">
+                {{ csrf_field() }}
+
+                <div class="field">
+                    <label for="body">{{ t('public.track.reply') }}</label>
+                    <textarea id="body" name="body" rows="4" maxlength="20000" required></textarea>
+                    <p class="field-hint">{{ t('public.track.reply_hint') }}</p>
+                    {% if errors.body is defined %}<p class="field-error">{{ errors.body }}</p>{% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button class="button" type="submit">{{ t('public.track.reply_submit') }}</button>
+                </div>
+            </form>
+        {% else %}
+            <p class="muted">{{ t('public.track.closed') }}</p>
+        {% endif %}
+    </section>
+
+    <p class="public-foot">{{ t('public.request.footer', {app: config('app.name')}) }}</p>
+</div>
+{% endblock %}

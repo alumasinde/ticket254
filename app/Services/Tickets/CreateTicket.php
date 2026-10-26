@@ -15,8 +15,10 @@ use App\Repositories\TicketCounterRepository;
 use App\Repositories\TicketEventRepository;
 use App\Repositories\TicketReferenceRepository;
 use App\Repositories\TicketRepository;
+use App\Repositories\TicketTokenRepository;
 use App\Services\Tenants\TenantContext;
 use App\Support\LocalTime;
+use App\Support\PublicUrl;
 use App\Support\TicketReference;
 use RuntimeException;
 
@@ -33,15 +35,66 @@ final class CreateTicket
         private readonly TeamRepository $teams,
         private readonly SiteRepository $sites,
         private readonly TenantRepository $tenants,
+        private readonly TicketTokenRepository $tokens,
+        private readonly PublicUrl $urls,
     ) {
     }
 
     /**
      * @param array<string, mixed> $input
-     * @return array{number: int, row: array<string, mixed>, events: list<array<string, mixed>>}
+     * @return array{number: int, row: array<string, mixed>, events: list<array<string, mixed>>, tracking_token: string, tracking_url: string}
      */
     public function execute(TenantContext $ctx, array $input): array
     {
+        return $this->create(
+            $ctx->tenantId,
+            $ctx->userId,
+            'staff',
+            $ctx->timezone,
+            $input,
+            true,
+            fn (int $number): ?array => $this->tickets->findByNumber($ctx, $number),
+            fn (int $ticketId): array => $this->events->forTicket($ctx, $ticketId),
+        );
+    }
+
+    /**
+     * A public requester has no account, no team choice and no priority choice.
+     *
+     * @param array<string, mixed> $tenant
+     * @param array<string, mixed> $input
+     * @return array{number: int, row: array<string, mixed>, events: list<array<string, mixed>>, tracking_token: string, tracking_url: string}
+     */
+    public function executePublic(array $tenant, array $input): array
+    {
+        return $this->create(
+            (int) $tenant['id'],
+            null,
+            'public',
+            (string) $tenant['timezone'],
+            $input,
+            false,
+            fn (int $number): ?array => $this->tickets->findByNumberForTenant((int) $tenant['id'], $number),
+            static fn (int $ticketId): array => [],
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @param callable(int): ?array $reload
+     * @param callable(int): list<array<string, mixed>> $loadEvents
+     * @return array{number: int, row: array<string, mixed>, events: list<array<string, mixed>>, tracking_token: string, tracking_url: string}
+     */
+    private function create(
+        int $tenantId,
+        ?int $actorUserId,
+        string $source,
+        string $timezone,
+        array $input,
+        bool $allowRoutingChoice,
+        callable $reload,
+        callable $loadEvents,
+    ): array {
         $requesterName = trim((string) ($input['requester_name'] ?? ''));
         $requesterEmail = strtolower(trim((string) ($input['requester_email'] ?? '')));
         $requesterPhone = $this->nullableText($input['requester_phone'] ?? null);
@@ -49,12 +102,12 @@ final class CreateTicket
         $description = trim((string) ($input['description'] ?? ''));
         $categoryId = $this->nullableId($input['category_id'] ?? null);
         $siteId = $this->nullableId($input['site_id'] ?? null);
-        $teamId = $this->nullableId($input['team_id'] ?? null);
+        $teamId = $allowRoutingChoice ? $this->nullableId($input['team_id'] ?? null) : null;
 
         $category = null;
 
         if ($categoryId !== null) {
-            $category = $this->categories->find($ctx, $categoryId);
+            $category = $this->categories->findForTenant($tenantId, $categoryId);
 
             if ($category === null || (string) $category['status'] !== 'active') {
                 throw new ValidationException([
@@ -64,7 +117,7 @@ final class CreateTicket
         }
 
         if ($siteId !== null) {
-            $site = $this->sites->find($ctx, $siteId);
+            $site = $this->sites->findForTenant($tenantId, $siteId);
 
             if ($site === null || (string) $site['status'] !== 'active') {
                 throw new ValidationException([
@@ -74,7 +127,7 @@ final class CreateTicket
         }
 
         if ($teamId !== null) {
-            $team = $this->teams->find($ctx, $teamId);
+            $team = $this->teams->findForTenant($tenantId, $teamId);
 
             if ($team === null || (string) $team['status'] !== 'active') {
                 throw new ValidationException([
@@ -85,18 +138,34 @@ final class CreateTicket
             $teamId = (int) $category['team_id'];
         }
 
-        $priority = $this->resolvePriority($input['priority'] ?? null, $category);
+        $priority = $this->resolvePriority(
+            $allowRoutingChoice ? ($input['priority'] ?? null) : null,
+            $category,
+        );
         $status = $this->references->statusByCode('open');
 
         if ($status === null) {
             throw new RuntimeException('The open ticket status is missing.');
         }
 
-        $dueAt = LocalTime::inputToUtc($input['due_at'] ?? null, $ctx->timezone)
-            ?? gmdate('Y-m-d H:i:s', time() + ((int) $priority['default_hours'] * 3600));
+        $dueAt = $allowRoutingChoice
+            ? LocalTime::inputToUtc($input['due_at'] ?? null, $timezone)
+            : null;
+        $dueAt ??= gmdate('Y-m-d H:i:s', time() + ((int) $priority['default_hours'] * 3600));
 
-        return $this->db->transaction(function () use (
-            $ctx,
+        $tenant = $this->tenants->findById($tenantId);
+
+        if ($tenant === null) {
+            throw new RuntimeException('The workspace could not be loaded.');
+        }
+
+        $token = TicketTokenRepository::newToken();
+
+        $result = $this->db->transaction(function () use (
+            $tenant,
+            $tenantId,
+            $actorUserId,
+            $source,
             $requesterName,
             $requesterEmail,
             $requesterPhone,
@@ -108,10 +177,11 @@ final class CreateTicket
             $priority,
             $status,
             $dueAt,
+            $token,
         ): array {
-            $number = $this->counters->allocate($ctx->tenantId);
+            $number = $this->counters->allocate($tenantId);
 
-            $ticketId = $this->tickets->createForTenant($ctx->tenantId, [
+            $ticketId = $this->tickets->createForTenant($tenantId, [
                 'ticket_number' => $number,
                 'site_id' => $siteId,
                 'category_id' => $categoryId,
@@ -125,17 +195,19 @@ final class CreateTicket
                 'description' => $description,
                 'status_id' => (int) $status['id'],
                 'priority_id' => (int) $priority['id'],
-                'source' => 'staff',
+                'source' => $source,
                 'version' => 1,
                 'due_at' => $dueAt,
             ]);
 
             $reference = TicketReference::format($number);
 
+            $this->tokens->create($tenantId, $ticketId, $token);
+
             $this->events->record(
-                $ctx->tenantId,
+                $tenantId,
                 $ticketId,
-                $ctx->userId,
+                $actorUserId,
                 'created',
                 null,
                 [
@@ -147,10 +219,8 @@ final class CreateTicket
                 ],
             );
 
-            $tenant = $this->tenants->findById($ctx->tenantId);
-
             $this->outbox->enqueue(
-                $ctx->tenantId,
+                $tenantId,
                 $ticketId,
                 'ticket_created',
                 $requesterEmail,
@@ -159,22 +229,30 @@ final class CreateTicket
                     'reference' => $reference,
                     'subject' => $subject,
                     'requester_name' => $requesterName,
-                    'workspace_name' => (string) ($tenant['name'] ?? ''),
+                    'workspace_name' => (string) $tenant['name'],
+                    'tracking_url' => $this->urls->track($tenant, $token),
                 ],
             );
 
-            $row = $this->tickets->findByNumber($ctx, $number);
-
-            if ($row === null) {
-                throw new RuntimeException('The created ticket could not be reloaded.');
-            }
-
             return [
                 'number' => $number,
-                'row' => $row,
-                'events' => $this->events->forTicket($ctx, $ticketId),
+                'ticket_id' => $ticketId,
             ];
         });
+
+        $row = $reload($result['number']);
+
+        if ($row === null) {
+            throw new RuntimeException('The created ticket could not be reloaded.');
+        }
+
+        return [
+            'number' => $result['number'],
+            'row' => $row,
+            'events' => $loadEvents((int) $result['ticket_id']),
+            'tracking_token' => $token,
+            'tracking_url' => $this->urls->track($tenant, $token),
+        ];
     }
 
     /**

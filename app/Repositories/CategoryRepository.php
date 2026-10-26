@@ -25,4 +25,27 @@ final class CategoryRepository extends TenantScopedRepository
     {
         return $this->query($ctx)->where('id', $id)->first();
     }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function activeForTenant(int $tenantId): array
+    {
+        return $this->db->table($this->table)
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findForTenant(int $tenantId, int $id): ?array
+    {
+        return $this->db->table($this->table)
+            ->where('tenant_id', $tenantId)
+            ->where('id', $id)
+            ->first();
+    }
 }

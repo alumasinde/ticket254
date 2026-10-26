@@ -1,0 +1,172 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}Settings — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Settings</p>
+        <h1 class="page-title">Workspace and public form</h1>
+        <p class="page-lede">Share the request link, control who can submit, and keep your contact details current.</p>
+    </div>
+</div>
+
+<div class="settings-grid">
+    <div class="settings-column">
+        <section class="panel">
+            <h2>Public request link</h2>
+
+            <div class="link-row">
+                <input class="readonly" type="text" value="{{ settings.public_form_url }}" readonly aria-label="Public request form link">
+                <a class="button button-quiet" href="{{ settings.public_form_url }}" target="_blank" rel="noopener">Open</a>
+            </div>
+
+            <div class="share-block">
+                <img class="qr" src="{{ qr }}" alt="QR code for the public request form" width="160" height="160">
+                <div>
+                    <p class="field-hint">Print the QR code or post it at reception. It opens the form on a phone camera.</p>
+                    <a class="button button-quiet" href="{{ whatsapp }}" target="_blank" rel="noopener">Share on WhatsApp</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Public form</h2>
+
+            <form method="post" action="{{ route('settings.public-form') }}">
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="PATCH">
+
+                <fieldset class="field">
+                    <legend>Link style</legend>
+                    <label class="choice">
+                        <input type="radio" name="mode" value="slug"{{ settings.public_form_mode == 'slug' ? ' checked' : '' }}>
+                        Readable address — {{ settings.slug }}
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="mode" value="private"{{ settings.public_form_mode == 'private' ? ' checked' : '' }}>
+                        Private link with a random key
+                    </label>
+                    {% if errors.mode is defined %}<p class="field-error">{{ errors.mode }}</p>{% endif %}
+                </fieldset>
+
+                <div class="field">
+                    <label class="choice">
+                        <input type="hidden" name="enabled" value="0">
+                        <input type="checkbox" name="enabled" value="1"{{ settings.public_form_enabled ? ' checked' : '' }}>
+                        Accept requests from the public form
+                    </label>
+                </div>
+
+                <div class="field">
+                    <label for="allowed_email_domains">Allowed email domains <span class="optional">optional</span></label>
+                    <textarea id="allowed_email_domains" name="allowed_email_domains" rows="2" placeholder="gleehotel.co.ke, gleenairobi.com">{{ settings.allowed_email_domains|join(', ') }}</textarea>
+                    <p class="field-hint">When set, requesters must use an email on these domains. Staff-created tickets are not restricted.</p>
+                    {% if errors.allowed_email_domains is defined %}<p class="field-error">{{ errors.allowed_email_domains }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="choice">
+                        <input type="hidden" name="allow_requester_replies" value="0">
+                        <input type="checkbox" name="allow_requester_replies" value="1"{{ settings.allow_requester_replies ? ' checked' : '' }}>
+                        Allow requesters to reply from the tracking page
+                    </label>
+                </div>
+
+                <div class="field">
+                    <label class="choice">
+                        <input type="hidden" name="attachments_enabled" value="0">
+                        <input type="checkbox" name="attachments_enabled" value="1"{{ settings.attachments_enabled ? ' checked' : '' }}>
+                        Allow one photo or file with each request
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="button" type="submit">Save public form settings</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Private link</h2>
+            <div class="link-row">
+                <input class="readonly" type="text" value="{{ settings.private_form_url }}" readonly aria-label="Private request form link">
+            </div>
+            <p class="field-hint">The private link always exists. It is only active while the link style is set to private.</p>
+
+            <div class="share-block">
+                <img class="qr" src="{{ private_qr }}" alt="QR code for the private request form" width="120" height="120">
+                <div>
+                    <p class="field-hint">Regenerating the key stops the old private link immediately.</p>
+                    <form method="post" action="{{ route('settings.regenerate') }}">
+                        {{ csrf_field() }}
+                        <button class="button button-quiet" type="submit">Regenerate private key</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="settings-column">
+        <section class="panel">
+            <h2>Workspace address</h2>
+            <form method="post" action="{{ route('settings.slug') }}">
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="PATCH">
+
+                <div class="field">
+                    <label for="slug">Public slug</label>
+                    <input id="slug" name="slug" type="text" value="{{ old('slug', settings.slug) }}" maxlength="40" required>
+                    <p class="field-hint">Lowercase letters, numbers and single hyphens, 3–40 characters. Old links redirect here.</p>
+                    {% if errors.slug is defined %}<p class="field-error">{{ errors.slug }}</p>{% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button class="button" type="submit">Change address</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Workspace details</h2>
+            <form method="post" action="{{ route('settings.update') }}">
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="PATCH">
+
+                <div class="field">
+                    <label for="name">Workspace name</label>
+                    <input id="name" name="name" type="text" value="{{ old('name', settings.name) }}" maxlength="160" required>
+                    {% if errors.name is defined %}<p class="field-error">{{ errors.name }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="timezone">Timezone</label>
+                    <select id="timezone" name="timezone">
+                        {% for timezone in timezones %}
+                            <option value="{{ timezone }}"{{ old('timezone', settings.timezone) == timezone ? ' selected' : '' }}>{{ timezone }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.timezone is defined %}<p class="field-error">{{ errors.timezone }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="contact_email">Contact email</label>
+                    <input id="contact_email" name="contact_email" type="email" value="{{ old('contact_email', settings.contact_email) }}" maxlength="254">
+                    <p class="field-hint">Requester replies go to the assignee, then to this address.</p>
+                    {% if errors.contact_email is defined %}<p class="field-error">{{ errors.contact_email }}</p>{% endif %}
+                </div>
+
+                <div class="field">
+                    <label for="contact_phone">Contact phone <span class="optional">optional</span></label>
+                    <input id="contact_phone" name="contact_phone" type="tel" value="{{ old('contact_phone', settings.contact_phone) }}" maxlength="32">
+                    {% if errors.contact_phone is defined %}<p class="field-error">{{ errors.contact_phone }}</p>{% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button class="button" type="submit">Save details</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+{% endblock %}

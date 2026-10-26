@@ -6,6 +6,7 @@ use App\Core\Router;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Workspace\HomeController as WorkspaceHomeController;
+use App\Http\Controllers\Workspace\SettingsController;
 use App\Http\Controllers\Workspace\TicketController;
 
 /** @var Router $router */
@@ -54,4 +55,49 @@ $router->group(['prefix' => '/app', 'middleware' => ['auth', 'tenant']], functio
     $router->patch('/tickets/{ref}', [TicketController::class, 'update'])
         ->name('tickets.update')
         ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/assign', [TicketController::class, 'assign'])
+        ->name('tickets.assign')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/status', [TicketController::class, 'transition'])
+        ->name('tickets.status')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/priority', [TicketController::class, 'priority'])
+        ->name('tickets.priority')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/messages', [TicketController::class, 'message'])
+        ->name('tickets.messages.store')
+        ->middleware('csrf');
+
+    $router->post('/tickets/{ref}/tracking-token/regenerate', [TicketController::class, 'regenerateTracking'])
+        ->name('tickets.tracking.regenerate')
+        ->middleware('csrf')
+        ->can('tickets.status');
+
+    $router->get('/settings', [SettingsController::class, 'show'])
+        ->name('settings.show')
+        ->can('settings.manage');
+
+    $router->patch('/settings', [SettingsController::class, 'updateProfile'])
+        ->name('settings.update')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->patch('/settings/public-form', [SettingsController::class, 'updatePublicForm'])
+        ->name('settings.public-form')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->patch('/settings/slug', [SettingsController::class, 'updateSlug'])
+        ->name('settings.slug')
+        ->middleware('csrf')
+        ->can('settings.manage');
+
+    $router->post('/settings/regenerate', [SettingsController::class, 'regenerate'])
+        ->name('settings.regenerate')
+        ->middleware('csrf')
+        ->can('settings.manage');
 });

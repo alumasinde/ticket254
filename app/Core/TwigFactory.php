@@ -85,6 +85,11 @@ final class TwigFactory
         ));
 
         $this->environment->addFunction(new TwigFunction(
+            't',
+            static fn (string $key, array $replace = []): string => t($key, $replace),
+        ));
+
+        $this->environment->addFunction(new TwigFunction(
             'csrf_field',
             static fn (): Markup => new Markup(csrf_field(), 'UTF-8'),
             ['is_safe' => ['html']],

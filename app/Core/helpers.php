@@ -129,6 +129,14 @@ function can(string $permission): bool
     return $container->get(App\Core\Gate::class)->allows($container->get(Request::class), $permission);
 }
 
+/**
+ * @param array<string, string|int> $replace
+ */
+function t(string $key, array $replace = []): string
+{
+    return app(App\Support\Translator::class)->get($key, $replace);
+}
+
 function csrf_token(): string
 {
     $session = app(SessionInterface::class);

@@ -1,0 +1,13 @@
+{% extends 'mail/layout.twig' %}
+
+{% block content %}
+    <p style="margin:0 0 12px;">Hello {{ requester_name }},</p>
+    <p style="margin:0 0 12px;">We have received your request and our team will look into it.</p>
+    <p style="margin:0 0 4px;"><strong>{{ reference }}</strong></p>
+    <p style="margin:0 0 16px;">{{ subject }}</p>
+    <p style="margin:0 0 16px;">Use the link below to follow progress and reply with more details. Keep this link private.</p>
+    <p style="margin:0 0 20px;">
+        <a href="{{ tracking_url }}" style="display:inline-block;padding:10px 16px;background:#14532d;color:#ffffff;border-radius:6px;text-decoration:none;font-weight:600;">Track your request</a>
+    </p>
+    <p style="margin:0;font-size:13px;color:#5e6a63;">{{ tracking_url }}</p>
+{% endblock %}

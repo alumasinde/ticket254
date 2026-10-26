@@ -12,8 +12,8 @@ use App\Services\Tenants\TenantContext;
 abstract class WorkspaceController
 {
     public function __construct(
-        private readonly UserRepository $users,
-        private readonly TenantRepository $tenants,
+        protected readonly UserRepository $users,
+        protected readonly TenantRepository $tenants,
     ) {
     }
 

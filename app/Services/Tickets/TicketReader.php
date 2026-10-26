@@ -6,7 +6,9 @@ namespace App\Services\Tickets;
 
 use App\Core\Exceptions\NotFoundException;
 use App\Database\Paginator;
+use App\Repositories\TicketAttachmentRepository;
 use App\Repositories\TicketEventRepository;
+use App\Repositories\TicketMessageRepository;
 use App\Repositories\TicketRepository;
 use App\Services\Tenants\TenantContext;
 use App\Support\TicketReference;
@@ -16,6 +18,8 @@ final class TicketReader
     public function __construct(
         private readonly TicketRepository $tickets,
         private readonly TicketEventRepository $events,
+        private readonly TicketMessageRepository $messages,
+        private readonly TicketAttachmentRepository $attachments,
         private readonly TicketAccess $access,
     ) {
     }
@@ -26,7 +30,7 @@ final class TicketReader
     }
 
     /**
-     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>}
+     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>, messages: list<array<string, mixed>>}
      */
     public function detail(TenantContext $ctx, string $reference): array
     {
@@ -48,7 +52,7 @@ final class TicketReader
     /**
      * The creator receives the ticket they just created, before team visibility applies.
      *
-     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>}
+     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>, messages: list<array<string, mixed>>}
      */
     public function forCreator(TenantContext $ctx, int $number): array
     {
@@ -63,13 +67,15 @@ final class TicketReader
 
     /**
      * @param array<string, mixed> $row
-     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>}
+     * @return array{row: array<string, mixed>, events: list<array<string, mixed>>, messages: list<array<string, mixed>>}
      */
     private function withEvents(TenantContext $ctx, array $row): array
     {
         return [
             'row' => $row,
             'events' => $this->events->forTicket($ctx, (int) $row['id']),
+            'messages' => $this->messages->forTicket($ctx, (int) $row['id']),
+            'attachments' => $this->attachments->forTicket($ctx->tenantId, (int) $row['id']),
         ];
     }
 }

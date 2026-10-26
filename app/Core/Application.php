@@ -6,8 +6,15 @@ namespace App\Core;
 
 use App\Core\Exceptions\HttpException;
 use App\Database\Database;
+use App\Mail\ArrayMailer;
+use App\Mail\EmailChannel;
+use App\Mail\LogMailer;
+use App\Mail\Mailer;
+use App\Mail\MailTemplates;
+use App\Mail\NotificationChannel;
 use App\Policies\PermissionGate;
 use App\Services\Tenants\TenantContext;
+use App\Support\Translator;
 use Dotenv\Dotenv;
 use ErrorException;
 use Monolog\Formatter\LineFormatter;
@@ -138,6 +145,25 @@ final class Application
         $session = new NativeSession($config->get('security.session', []));
         $container->instance(SessionInterface::class, $session);
         $container->instance('session', $session);
+        $container->bind(
+            Translator::class,
+            static fn (Container $c): Translator => new Translator($c->get(SessionInterface::class)),
+        );
+
+        $container->bind(Mailer::class, static function () use ($config): Mailer {
+            if ((string) $config->get('mail.driver', 'log') === 'array') {
+                return new ArrayMailer();
+            }
+
+            return new LogMailer((string) $config->get('mail.log_path', BASE_PATH . '/storage/logs/mail.log'));
+        });
+        $container->bind(
+            NotificationChannel::class,
+            static fn (Container $c): NotificationChannel => new EmailChannel(
+                $c->get(MailTemplates::class),
+                $c->get(Mailer::class),
+            ),
+        );
 
         $container->instance(Gate::class, new PermissionGate($container));
         $container->instance('gate', $container->get(Gate::class));
