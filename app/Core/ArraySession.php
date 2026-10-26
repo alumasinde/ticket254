@@ -8,6 +8,8 @@ final class ArraySession implements SessionInterface
 {
     private bool $started = false;
 
+    public int $regenerations = 0;
+
     /**
      * @param array<string, mixed> $data
      */
@@ -82,7 +84,9 @@ final class ArraySession implements SessionInterface
         if (!in_array($key, $this->data['_flash']['new'], true)) {
             $this->data['_flash']['new'][] = $key;
         }
-    }    public function all(): array
+    }
+
+    public function all(): array
     {
         $this->start();
 
@@ -92,6 +96,7 @@ final class ArraySession implements SessionInterface
     public function regenerate(): void
     {
         $this->start();
+        $this->regenerations++;
     }
 
     public function destroy(): void

@@ -1,0 +1,44 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Sign in — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="auth">
+    <p class="eyebrow">Staff access</p>
+    <h1 class="auth-title">Sign in</h1>
+    <p class="auth-lede">Use the email and password for your workspace account.</p>
+
+    {% if errors %}
+        <div class="alert alert-error" role="alert">
+            <p>Please correct the highlighted fields.</p>
+            <ul>
+                {% for message in errors %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" action="{{ route('login.store') }}" class="panel auth-panel">
+        {{ csrf_field() }}
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" value="{{ old('email') }}"
+                   maxlength="254" autocomplete="email" required>
+            {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password"
+                   maxlength="255" autocomplete="current-password" required>
+            {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
+        </div>
+
+        <button class="button" type="submit">Sign in</button>
+    </form>
+
+    <p class="auth-switch">New here? <a href="{{ route('register') }}">Create a workspace</a></p>
+</section>
+{% endblock %}

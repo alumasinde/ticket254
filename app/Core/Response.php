@@ -26,6 +26,14 @@ class Response
         return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
+    /**
+     * @param array<string, string> $headers
+     */
+    public static function noContent(array $headers = []): self
+    {
+        return new self('', 204, $headers);
+    }
+
     public static function json(mixed $data, int $status = 200, array $headers = []): self
     {
         $content = json_encode(

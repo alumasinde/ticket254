@@ -125,6 +125,8 @@ final class Validator
             'max' => $this->checkBound($value, $parameter, $ruleList, true),
             'min' => $this->checkBound($value, $parameter, $ruleList, false),
             'in' => $this->checkIn($value, $parameter),
+            'regex' => $this->checkRegex($value, $parameter),
+            'timezone' => $this->checkTimezone($value),
             default => throw new RuntimeException("Unknown validation rule [$name]."),
         };
     }
@@ -167,6 +169,22 @@ final class Validator
         return in_array((string) $value, $allowed, true) ? null : implode(', ', $allowed);
     }
 
+    private function checkRegex(mixed $value, ?string $parameter): ?string
+    {
+        if ($parameter === null || $parameter === '') {
+            throw new RuntimeException('The regex rule requires a pattern.');
+        }
+
+        return is_string($value) && preg_match($parameter, $value) === 1 ? null : $parameter;
+    }
+
+    private function checkTimezone(mixed $value): ?string
+    {
+        return is_string($value) && in_array($value, timezone_identifiers_list(), true)
+            ? null
+            : 'valid timezone';
+    }
+
     /**
      * @param array<string, string> $messages
      */
@@ -192,6 +210,8 @@ final class Validator
             'max' => sprintf('The %s field may not be greater than %s.', $label, $detail),
             'min' => sprintf('The %s field must be at least %s.', $label, $detail),
             'in' => sprintf('The selected %s is invalid.', $label),
+            'regex' => sprintf('The %s field format is invalid.', $label),
+            'timezone' => sprintf('The %s field must be a valid timezone.', $label),
             default => sprintf('The %s field is invalid.', $label),
         };
     }

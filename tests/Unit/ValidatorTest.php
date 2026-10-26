@@ -104,6 +104,33 @@ final class ValidatorTest extends TestCase
         $this->assertSame('Tell us the subject.', $errors['subject']);
     }
 
+    public function test_regex_rule_accepts_a_matching_slug(): void
+    {
+        $rules = ['slug' => 'regex:/^[a-z0-9-]+$/'];
+
+        $this->assertSame([], $this->validator->errors(['slug' => 'glee-hotel'], $rules));
+        $this->assertSame(
+            'The slug field format is invalid.',
+            $this->validator->errors(['slug' => 'Glee Hotel'], $rules)['slug'],
+        );
+    }
+
+    public function test_timezone_rule_uses_php_timezone_identifiers(): void
+    {
+        $this->assertSame(
+            [],
+            $this->validator->errors(['timezone' => 'Africa/Nairobi'], ['timezone' => 'timezone']),
+        );
+        $this->assertSame(
+            'The timezone field must be a valid timezone.',
+            $this->validator->errors(['timezone' => 'Mars/Olympus'], ['timezone' => 'timezone'])['timezone'],
+        );
+        $this->assertSame(
+            [],
+            $this->validator->errors(['timezone' => ''], ['timezone' => 'nullable|timezone']),
+        );
+    }
+
     public function test_unknown_rule_fails_loudly(): void
     {
         $this->expectException(RuntimeException::class);

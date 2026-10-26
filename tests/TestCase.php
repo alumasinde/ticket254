@@ -29,6 +29,8 @@ abstract class TestCase extends BaseTestCase
 
         $this->app->container()->instance(SessionInterface::class, $this->session);
         $this->app->container()->instance('session', $this->session);
+
+        $this->db()->statement('DELETE FROM rate_limits');
     }
 
     /**

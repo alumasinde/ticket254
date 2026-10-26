@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ config('app.name') }}{% endblock %}</title>
     <link rel="stylesheet" href="{{ asset('assets/app.css') }}">
 </head>
@@ -12,6 +13,15 @@
     </header>
 
     <main class="site-main">
+        {% set success = flash('success') %}
+        {% set failure = flash('error') %}
+        {% if success %}
+            <p class="flash flash-success" role="status">{{ success }}</p>
+        {% endif %}
+        {% if failure %}
+            <p class="flash flash-error" role="alert">{{ failure }}</p>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 </body>

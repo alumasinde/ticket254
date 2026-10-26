@@ -101,6 +101,225 @@ h1 {
     font-size: 0.9rem;
 }
 
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.5rem 0 0;
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.94rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: #0f3f23;
+}
+
+.button-quiet {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--rule);
+}
+
+.button-quiet:hover {
+    background: #eeece4;
+}
+
+.auth {
+    max-width: 460px;
+    padding-top: clamp(2rem, 8vh, 4.5rem);
+}
+
+.auth-title {
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+}
+
+.auth-lede {
+    margin: 0 0 1.5rem;
+    max-width: 52ch;
+    color: var(--muted);
+}
+
+.auth-panel {
+    margin-bottom: 1.1rem;
+    padding: 1.25rem;
+}
+
+.panel {
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: #fbfaf6;
+}
+
+.panel h2 {
+    margin: 0 0 0.75rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: #ffffff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+.field-hint {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.field-error {
+    margin: 0.35rem 0 0;
+    color: var(--danger);
+    font-size: 0.82rem;
+}
+
+.alert {
+    margin: 0 0 1.1rem;
+    padding: 0.8rem 0.95rem;
+    border: 1px solid #dcc3bd;
+    border-radius: var(--radius);
+    background: #f7ece9;
+    color: var(--danger);
+    font-size: 0.88rem;
+}
+
+.alert p {
+    margin: 0;
+}
+
+.alert ul {
+    margin: 0.35rem 0 0;
+    padding-left: 1.1rem;
+}
+
+.alert li + li {
+    margin-top: 0.15rem;
+}
+
+.flash {
+    max-width: 680px;
+    margin: 1.25rem 0 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+}
+
+.flash-success {
+    border: 1px solid #c4d6c8;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.flash-error {
+    border: 1px solid #dcc3bd;
+    background: #f7ece9;
+    color: var(--danger);
+}
+
+.auth-switch {
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.app-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-top: clamp(2rem, 7vh, 3.5rem);
+}
+
+.app-head form {
+    margin: 0;
+}
+
+.app-head .auth-lede {
+    margin-bottom: 0;
+}
+
+.app-title {
+    margin-bottom: 0.4rem;
+    font-size: clamp(1.7rem, 4.5vw, 2.5rem);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.data-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.data-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--rule);
+    font-size: 0.92rem;
+}
+
+.data-list li:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.tag {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.muted {
+    color: var(--muted);
+}
+
 .trace {
     margin-top: 1.5rem;
     padding: 1rem;
@@ -126,5 +345,17 @@ h1 {
 
     .intro {
         padding-top: 3rem;
+    }
+
+    .auth {
+        padding-top: 2.25rem;
+    }
+
+    .app-head {
+        flex-direction: column;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
     }
 }

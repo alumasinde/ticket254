@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Sign in required — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">401</p>
+    <h1>Sign in required</h1>
+    <p class="lede">{{ message ?: 'Your session has ended. Sign in to continue.' }}</p>
+    <p class="note"><a href="{{ route('login') }}">Go to sign in</a></p>
+</section>
+{% endblock %}

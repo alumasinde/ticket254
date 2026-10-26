@@ -6,6 +6,8 @@ namespace App\Core;
 
 use App\Core\Exceptions\HttpException;
 use App\Database\Database;
+use App\Policies\PermissionGate;
+use App\Services\Tenants\TenantContext;
 use Dotenv\Dotenv;
 use ErrorException;
 use Monolog\Formatter\LineFormatter;
@@ -60,6 +62,7 @@ final class Application
 
     public function handle(Request $request): Response
     {
+        $this->container->forget(TenantContext::class);
         $this->container->instance(Request::class, $request);
         $this->container->instance('request', $request);
 
@@ -136,7 +139,7 @@ final class Application
         $container->instance(SessionInterface::class, $session);
         $container->instance('session', $session);
 
-        $container->instance(Gate::class, new DenyAllGate());
+        $container->instance(Gate::class, new PermissionGate($container));
         $container->instance('gate', $container->get(Gate::class));
 
         $container->instance(Validator::class, new Validator());
@@ -180,7 +183,7 @@ final class Application
         $message = 'Please correct the highlighted fields.';
 
         if ($request->expectsJson()) {
-            return $this->jsonError(422, $message, [], $exception->errors());
+            return $this->jsonError(422, $message, [], $exception->errors(), 'validation_failed');
         }
 
         return (new RedirectResponse($this->backPath($request), 302, $this->container->get(SessionInterface::class)))
@@ -205,7 +208,7 @@ final class Application
         }
 
         if ($request->expectsJson()) {
-            return $this->jsonError($status, $message, $exception->headers);
+            return $this->jsonError($status, $message, $exception->headers, null, $exception->errorCode);
         }
 
         return $this->renderErrorPage($status, $message, $exception->headers);
@@ -223,7 +226,7 @@ final class Application
         $headers = ['X-Error-Id' => $errorId];
 
         if ($request->expectsJson()) {
-            return $this->jsonError(500, 'Something went wrong.', $headers);
+            return $this->jsonError(500, 'Something went wrong.', $headers, null, 'server_error');
         }
 
         $debug = (bool) $this->container->get(Config::class)->get('app.debug', false);
@@ -282,10 +285,15 @@ final class Application
      * @param array<string, string> $headers
      * @param array<string, string>|null $fields
      */
-    private function jsonError(int $status, string $message, array $headers = [], ?array $fields = null): Response
-    {
+    private function jsonError(
+        int $status,
+        string $message,
+        array $headers = [],
+        ?array $fields = null,
+        ?string $code = null,
+    ): Response {
         $error = [
-            'code' => $this->errorCode($status),
+            'code' => $code ?? $this->errorCode($status),
             'message' => $message,
         ];
 

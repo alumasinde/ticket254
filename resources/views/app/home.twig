@@ -1,0 +1,49 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}{{ workspace.name }} — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="app-head">
+    <div>
+        <p class="eyebrow">Workspace</p>
+        <h1 class="app-title">{{ workspace.name }}</h1>
+        <p class="auth-lede">
+            Signed in as {{ user.first_name }} {{ user.last_name }} · {{ role|capitalize }} · {{ workspace.timezone }}
+        </p>
+    </div>
+    <form method="post" action="{{ route('logout') }}">
+        {{ csrf_field() }}
+        <button class="button button-quiet" type="submit">Sign out</button>
+    </form>
+</section>
+
+<div class="grid-2">
+    <section class="panel">
+        <h2>Teams</h2>
+        {% if teams %}
+            <ul class="data-list">
+                {% for team in teams %}
+                    <li><span>{{ team.name }}</span><span class="tag">{{ team.status }}</span></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No teams yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h2>Categories</h2>
+        {% if categories %}
+            <ul class="data-list">
+                {% for category in categories %}
+                    <li><span>{{ category.name }}</span><span class="tag">{{ category.status }}</span></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No categories yet.</p>
+        {% endif %}
+    </section>
+</div>
+
+<p class="note">The hotel starter template is in place. Teams and categories belong to this workspace only.</p>
+{% endblock %}

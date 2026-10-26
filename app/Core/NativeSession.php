@@ -34,6 +34,7 @@ final class NativeSession implements SessionInterface
         }
 
         $savePath = $this->config['save_path'] ?? null;
+        $lifetime = ((int) ($this->config['lifetime'] ?? 120)) * 60;
 
         if (is_string($savePath) && $savePath !== '') {
             if (!is_dir($savePath)) {
@@ -43,9 +44,13 @@ final class NativeSession implements SessionInterface
             session_save_path($savePath);
         }
 
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
+
         session_name((string) ($this->config['name'] ?? 'hd_session'));
         session_set_cookie_params([
-            'lifetime' => ((int) ($this->config['lifetime'] ?? 120)) * 60,
+            'lifetime' => $lifetime,
             'path' => (string) ($this->config['path'] ?? '/'),
             'secure' => (bool) ($this->config['secure'] ?? false),
             'httponly' => true,
@@ -125,6 +130,16 @@ final class NativeSession implements SessionInterface
 
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
+        }
+
+        if (!headers_sent()) {
+            setcookie((string) ($this->config['name'] ?? 'hd_session'), '', [
+                'expires' => time() - 3600,
+                'path' => (string) ($this->config['path'] ?? '/'),
+                'secure' => (bool) ($this->config['secure'] ?? false),
+                'httponly' => true,
+                'samesite' => (string) ($this->config['same_site'] ?? 'Lax'),
+            ]);
         }
 
         $this->started = false;

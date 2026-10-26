@@ -295,13 +295,13 @@ final class Request
         foreach ($server as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
-                $headers[$name] = (string) $value;
+                $headers[strtolower($name)] = (string) $value;
             }
         }
 
         foreach (['CONTENT_TYPE' => 'Content-Type', 'CONTENT_LENGTH' => 'Content-Length'] as $key => $name) {
             if (isset($server[$key])) {
-                $headers[$name] = (string) $server[$key];
+                $headers[strtolower($name)] = (string) $server[$key];
             }
         }
 

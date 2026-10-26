@@ -10,7 +10,13 @@ return [
     'timezone' => 'UTC',
     'locale' => 'en',
 
-    'middleware_aliases' => [],
+    'middleware_aliases' => [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'guest' => \App\Http\Middleware\RequireGuest::class,
+        'tenant' => \App\Http\Middleware\ResolveTenant::class,
+        'csrf' => \App\Http\Middleware\VerifyCsrf::class,
+        'throttle.login' => \App\Http\Middleware\ThrottleLogin::class,
+    ],
 
     'log' => [
         'path' => BASE_PATH . '/storage/logs/app.log',

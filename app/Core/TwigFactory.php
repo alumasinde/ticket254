@@ -80,6 +80,11 @@ final class TwigFactory
         ));
 
         $this->environment->addFunction(new TwigFunction(
+            'csrf_token',
+            static fn (): string => csrf_token(),
+        ));
+
+        $this->environment->addFunction(new TwigFunction(
             'csrf_field',
             static fn (): Markup => new Markup(csrf_field(), 'UTF-8'),
             ['is_safe' => ['html']],

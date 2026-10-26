@@ -31,6 +31,11 @@ final class Container
         return isset($this->instances[$id]);
     }
 
+    public function forget(string $id): void
+    {
+        unset($this->instances[$id]);
+    }
+
     public function has(string $id): bool
     {
         return isset($this->instances[$id])

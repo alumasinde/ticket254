@@ -40,6 +40,20 @@ final class RequestTest extends TestCase
         $this->assertSame('/a b/c', Request::normalizePath('/a%20b/c/'));
     }
 
+    public function test_captured_server_headers_keep_the_lowercase_key_capture_relies_on(): void
+    {
+        $method = new \ReflectionMethod(Request::class, 'headersFromServer');
+        $headers = $method->invoke(null, [
+            'CONTENT_TYPE' => 'application/json; charset=utf-8',
+            'CONTENT_LENGTH' => '42',
+            'HTTP_X_CSRF_TOKEN' => 'token-value',
+        ]);
+
+        $this->assertSame('application/json; charset=utf-8', $headers['content-type']);
+        $this->assertSame('42', $headers['content-length']);
+        $this->assertSame('token-value', $headers['x-csrf-token']);
+    }
+
     public function test_header_lookup_is_case_insensitive(): void
     {
         $request = Request::create('GET', '/', [], ['Accept' => 'application/json']);
