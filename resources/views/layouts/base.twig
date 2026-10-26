@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ config('app.name') }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('assets/app.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <a class="wordmark" href="{{ route('home') }}">{{ config('app.name') }}</a>
+    </header>
+
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

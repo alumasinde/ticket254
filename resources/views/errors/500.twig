@@ -1,0 +1,14 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Something went wrong — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">500</p>
+    <h1>Something went wrong</h1>
+    <p class="lede">{{ message ?: 'The request could not be completed. Please try again.' }}</p>
+    {% if debug and trace %}
+        <pre class="trace">{{ trace }}</pre>
+    {% endif %}
+</section>
+{% endblock %}

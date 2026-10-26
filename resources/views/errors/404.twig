@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Page not found — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">404</p>
+    <h1>Page not found</h1>
+    <p class="lede">{{ message ?: 'The page you asked for does not exist, or it belongs to another workspace.' }}</p>
+    <p class="note"><a href="{{ route('home') }}">Return to the start page</a></p>
+</section>
+{% endblock %}

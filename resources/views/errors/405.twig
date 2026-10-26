@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Method not allowed — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">405</p>
+    <h1>Method not allowed</h1>
+    <p class="lede">{{ message ?: 'That address does not accept this kind of request.' }}</p>
+    <p class="note"><a href="{{ route('home') }}">Return to the start page</a></p>
+</section>
+{% endblock %}

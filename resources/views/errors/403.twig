@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Access denied — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">403</p>
+    <h1>Access denied</h1>
+    <p class="lede">{{ message ?: 'You do not have permission to do that.' }}</p>
+    <p class="note"><a href="{{ route('home') }}">Return to the start page</a></p>
+</section>
+{% endblock %}

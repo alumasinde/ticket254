@@ -1,0 +1,12 @@
+{% extends 'layouts/base.twig' %}
+
+{% block title %}Request failed — {{ config('app.name') }}{% endblock %}
+
+{% block content %}
+<section class="intro">
+    <p class="eyebrow">{{ status }}</p>
+    <h1>Request failed</h1>
+    <p class="lede">{{ message ?: 'The request could not be completed.' }}</p>
+    <p class="note"><a href="{{ route('home') }}">Return to the start page</a></p>
+</section>
+{% endblock %}
