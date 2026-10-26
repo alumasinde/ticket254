@@ -1,86 +1,110 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/auth.twig' %}
 
 {% block title %}Create a workspace — {{ config('app.name') }}{% endblock %}
 
-{% block content %}
-<section class="auth">
-    <p class="eyebrow">Get started</p>
+{% block auth_form %}
+<div class="auth-head">
+    <span class="auth-head-icon" aria-hidden="true"><svg class="icon"><use href="#i-user-plus"/></svg></span>
+    <p class="auth-kicker">Get started</p>
     <h1 class="auth-title">Create your workspace</h1>
     <p class="auth-lede">You will be the owner. Staff can be invited once the workspace exists.</p>
+</div>
 
-    {% if errors %}
-        <div class="alert alert-error" role="alert">
-            <p>Please correct the highlighted fields.</p>
-            <ul>
-                {% for message in errors %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+{% if errors %}
+    <div class="alert alert-error" role="alert">
+        <p>Please correct the highlighted fields.</p>
+        <ul>
+            {% for message in errors %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
 
+<form method="post" action="{{ route('register.store') }}" class="auth-form-panel">
+    {{ csrf_field() }}
 
-    <form method="post" action="{{ route('register.store') }}" class="panel auth-panel">
-        {{ csrf_field() }}
-
-        <div class="field">
-            <label for="first_name">First name</label>
-            <input id="first_name" name="first_name" type="text" value="{{ old('first_name') }}"
-                   maxlength="100" autocomplete="given-name" required>
+    <div class="auth-field-row">
+        <div class="field auth-field">
+            <label for="first_name">First name <span class="auth-required" aria-hidden="true">*</span></label>
+            <div class="auth-input">
+                <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-user"/></svg>
+                <input id="first_name" name="first_name" type="text" value="{{ old('first_name') }}"
+                       placeholder="e.g. John" maxlength="100" autocomplete="given-name" required>
+            </div>
             {% if errors.first_name is defined %}<p class="field-error">{{ errors.first_name }}</p>{% endif %}
         </div>
 
-        <div class="field">
-            <label for="last_name">Last name</label>
-            <input id="last_name" name="last_name" type="text" value="{{ old('last_name') }}"
-                   maxlength="100" autocomplete="family-name" required>
+        <div class="field auth-field">
+            <label for="last_name">Last name <span class="auth-required" aria-hidden="true">*</span></label>
+            <div class="auth-input">
+                <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-user"/></svg>
+                <input id="last_name" name="last_name" type="text" value="{{ old('last_name') }}"
+                       placeholder="e.g. Kamau" maxlength="100" autocomplete="family-name" required>
+            </div>
             {% if errors.last_name is defined %}<p class="field-error">{{ errors.last_name }}</p>{% endif %}
         </div>
+    </div>
 
-        <div class="field">
-            <label for="email">Work email</label>
+    <div class="field auth-field">
+        <label for="email">Work email <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-mail"/></svg>
             <input id="email" name="email" type="email" value="{{ old('email') }}"
-                   maxlength="254" autocomplete="email" required>
-            {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+                   placeholder="you@company.com" maxlength="254" autocomplete="email" required>
         </div>
+        {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+    </div>
 
-        <div class="field">
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password"
+    <div class="field auth-field">
+        <label for="password">Password <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-lock"/></svg>
+            <input id="password" name="password" type="password" placeholder="Enter your password"
                    minlength="10" maxlength="255" autocomplete="new-password" required>
-            <p class="field-hint">At least 10 characters. A passphrase is easiest to remember.</p>
-            {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
         </div>
+        <p class="field-hint">At least 10 characters. A passphrase is easiest to remember.</p>
+        {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
+    </div>
 
-        <div class="field">
-            <label for="workspace_name">Workspace name</label>
+    <div class="field auth-field">
+        <label for="workspace_name">Workspace name <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-building"/></svg>
             <input id="workspace_name" name="workspace_name" type="text" value="{{ old('workspace_name') }}"
-                   maxlength="160" autocomplete="organization" required>
-            {% if errors.workspace_name is defined %}<p class="field-error">{{ errors.workspace_name }}</p>{% endif %}
+                   placeholder="e.g. Glee Hotel" maxlength="160" autocomplete="organization" required>
         </div>
+        {% if errors.workspace_name is defined %}<p class="field-error">{{ errors.workspace_name }}</p>{% endif %}
+    </div>
 
-        <div class="field">
-            <label for="slug">Workspace address</label>
+    <div class="field auth-field">
+        <label for="slug">Workspace address <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input auth-input-group">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-link"/></svg>
+            <span class="auth-affix">/request/</span>
             <input id="slug" name="slug" type="text" value="{{ old('slug') }}"
-                   minlength="3" maxlength="40" pattern="[a-z0-9-]+" autocomplete="off" required>
-            <p class="field-hint">Lowercase letters, numbers and hyphens, for example gleehotel.</p>
-            {% if errors.slug is defined %}<p class="field-error">{{ errors.slug }}</p>{% endif %}
+                   placeholder="your-workspace" minlength="3" maxlength="40" pattern="[a-z0-9-]+"
+                   autocomplete="off" required>
         </div>
+        <p class="field-hint">Lowercase letters, numbers and hyphens, for example gleehotel.</p>
+        {% if errors.slug is defined %}<p class="field-error">{{ errors.slug }}</p>{% endif %}
+    </div>
 
-        <div class="field">
-            <label for="timezone">Timezone</label>
-            <select id="timezone" name="timezone">
+    <div class="field auth-field">
+        <label for="timezone">Timezone <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-globe"/></svg>
+            <select id="timezone" name="timezone" required>
                 {% for timezone in timezones %}
                     <option value="{{ timezone }}"{{ old('timezone', 'Africa/Nairobi') == timezone ? ' selected' : '' }}>{{ timezone }}</option>
                 {% endfor %}
             </select>
-            {% if errors.timezone is defined %}<p class="field-error">{{ errors.timezone }}</p>{% endif %}
         </div>
+        {% if errors.timezone is defined %}<p class="field-error">{{ errors.timezone }}</p>{% endif %}
+    </div>
 
-        <button class="button" type="submit">Create workspace</button>
-    </form>
+    <button class="button auth-submit" type="submit">Create workspace</button>
+</form>
 
-    <p class="auth-switch">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
-</section>
+<p class="auth-switch">Already have an account? <a href="{{ route('login') }}">Sign in</a></p>
 {% endblock %}
-

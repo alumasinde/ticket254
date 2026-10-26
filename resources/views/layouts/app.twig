@@ -3,42 +3,207 @@
 {% block body_class %}app-body{% endblock %}
 
 {% block header %}
-<header class="app-bar">
-    <div class="app-bar-inner">
-        <div class="app-brand">
-            <a class="wordmark" href="{{ route('app.home') }}">{{ config('app.name') }}</a>
-            <span class="workspace-name">{{ workspace.name }}</span>
+<svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.5 2.5 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.5 2.5 0 0 0 0-6Z"/><path d="M13 5v3"/><path d="M13 11v3"/><path d="M13 17v2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M15 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 12 4H4v8l8.6 8.6a2 2 0 0 0 2.8 0l5.2-5.2a2 2 0 0 0 0-2Z"/><circle cx="7.5" cy="7.5" r=".7" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h4"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></symbol>
+    <symbol id="i-life-buoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="m4.9 4.9 4.4 4.4"/><path d="m14.7 14.7 4.4 4.4"/><path d="m14.7 9.3 4.4-4.4"/><path d="m9.3 14.7-4.4 4.4"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
+</svg>
+
+<div class="nav-scrim" data-nav-scrim></div>
+
+<aside class="app-sidebar" id="app-sidebar" aria-label="Workspace navigation">
+    <div class="sidebar-brand">
+        <a class="sidebar-brand-link" href="{{ route('app.home') }}">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><use href="#i-ticket"/></svg>
+            </span>
+            <span class="brand-text">
+                <span class="brand-name">{{ config('app.name') }}</span>
+                <span class="brand-tagline">Support. Solve. Grow.</span>
+            </span>
+        </a>
+    </div>
+
+    <div class="workspace-card">
+        <span class="workspace-card-label">Workspace</span>
+        <span class="workspace-card-name">
+            <span class="workspace-avatar" aria-hidden="true">{{ workspace.name|first|upper }}</span>
+            <span class="workspace-card-text">
+                <strong>{{ workspace.name }}</strong>
+                <small>{{ workspace.timezone }}</small>
+            </span>
+        </span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Workspace sections">
+        <p class="sidebar-section">Workspace</p>
+
+        <a class="sidebar-link" href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>
+            <svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link" href="{{ route('tickets.index') }}"{{ nav == 'tickets' ? ' aria-current="page"' : '' }}>
+            <svg class="icon" aria-hidden="true"><use href="#i-ticket"/></svg>
+            <span>Tickets</span>
+        </a>
+        <div class="sidebar-subnav">
+            <a href="{{ route('tickets.index') }}">All tickets</a>
+            <a href="{{ route('tickets.index', {mine: 1}) }}">Assigned to me</a>
+            <a href="{{ route('tickets.index', {unassigned: 1}) }}">Unassigned</a>
+            <a href="{{ route('tickets.index', {overdue: 1}) }}">Overdue</a>
         </div>
 
-        <nav class="app-nav" aria-label="Workspace">
-            <a href="{{ route('app.home') }}"{{ nav == 'workspace' ? ' aria-current="page"' : '' }}>Dashboard</a>
-            <a href="{{ route('tickets.index') }}"{{ nav == 'tickets' ? ' aria-current="page"' : '' }}>Tickets</a>
+        {% set manage_visible = can('teams.manage') or can('members.manage') or can('categories.manage') or can('audit.view') or can('settings.manage') %}
+        {% if manage_visible %}
+            <p class="sidebar-section">Manage</p>
+
             {% if can('teams.manage') %}
-                <a href="{{ route('teams.index') }}"{{ nav == 'teams' ? ' aria-current="page"' : '' }}>Teams</a>
+                <a class="sidebar-link" href="{{ route('teams.index') }}"{{ nav == 'teams' ? ' aria-current="page"' : '' }}>
+                    <svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>
+                    <span>Teams</span>
+                </a>
             {% endif %}
-            {% if can('members.manage') %}
-                <a href="{{ route('members.index') }}"{{ nav == 'members' ? ' aria-current="page"' : '' }}>Members</a>
-            {% endif %}
-            {% if can('categories.manage') %}
-                <a href="{{ route('categories.index') }}"{{ nav == 'categories' ? ' aria-current="page"' : '' }}>Categories</a>
-            {% endif %}
-            {% if can('audit.view') %}
-                <a href="{{ route('audit.index') }}"{{ nav == 'audit' ? ' aria-current="page"' : '' }}>Audit</a>
-            {% endif %}
-            {% if can('settings.manage') %}
-                <a href="{{ route('settings.show') }}"{{ nav == 'settings' ? ' aria-current="page"' : '' }}>Settings</a>
-            {% endif %}
-        </nav>
 
-        <div class="app-user">
-            <span class="app-user-name">{{ user.first_name }} {{ user.last_name }}</span>
-            <form method="post" action="{{ route('logout') }}">
-                {{ csrf_field() }}
-                <button class="link-button" type="submit">Sign out</button>
-            </form>
-        </div>
+            {% if can('members.manage') %}
+                <a class="sidebar-link" href="{{ route('members.index') }}"{{ nav == 'members' ? ' aria-current="page"' : '' }}>
+                    <svg class="icon" aria-hidden="true"><use href="#i-user-plus"/></svg>
+                    <span>Members</span>
+                </a>
+            {% endif %}
+
+            {% if can('categories.manage') %}
+                <a class="sidebar-link" href="{{ route('categories.index') }}"{{ nav == 'categories' ? ' aria-current="page"' : '' }}>
+                    <svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg>
+                    <span>Categories</span>
+                </a>
+            {% endif %}
+
+            {% if can('audit.view') %}
+                <a class="sidebar-link" href="{{ route('audit.index') }}"{{ nav == 'audit' ? ' aria-current="page"' : '' }}>
+                    <svg class="icon" aria-hidden="true"><use href="#i-clipboard"/></svg>
+                    <span>Audit log</span>
+                </a>
+            {% endif %}
+
+            {% if can('settings.manage') %}
+                <a class="sidebar-link" href="{{ route('settings.show') }}"{{ nav == 'settings' ? ' aria-current="page"' : '' }}>
+                    <svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>
+                    <span>Settings</span>
+                </a>
+            {% endif %}
+        {% endif %}
+
+        {% if user.is_platform_admin %}
+            <p class="sidebar-section">Platform</p>
+            <a class="sidebar-link" href="{{ route('platform.index') }}">
+                <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
+                <span>Operations console</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        {% if workspace.public_form_enabled %}
+            <a class="sidebar-public" href="{{ route('public.request.show.identifier', {identifier: workspace.slug}) }}">
+                <span class="sidebar-public-icon" aria-hidden="true">
+                    <svg class="icon"><use href="#i-life-buoy"/></svg>
+                </span>
+                <span class="sidebar-public-text">
+                    <strong>Public request page</strong>
+                    <small>Let requesters raise tickets without an account.</small>
+                </span>
+                <svg class="icon icon-external" aria-hidden="true"><use href="#i-external"/></svg>
+            </a>
+        {% endif %}
+    </div>
+</aside>
+
+<header class="app-topbar">
+    <button class="nav-toggle" type="button" aria-controls="app-sidebar" aria-expanded="false" data-nav-toggle>
+        <span class="visually-hidden">Open navigation</span>
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+
+    {% if can('tickets.view_team') %}
+        <form class="topbar-search" method="get" action="{{ route('tickets.index') }}" role="search">
+            <label class="visually-hidden" for="top-search">Search tickets</label>
+            <svg class="icon topbar-search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+            <input id="top-search" name="q" type="search" maxlength="120" placeholder="Search tickets, requesters, references">
+        </form>
+    {% else %}
+        <span class="topbar-spacer"></span>
+    {% endif %}
+
+    <div class="topbar-actions">
+        {% if can('tickets.create') %}
+            <a class="button button-compact topbar-new" href="{{ route('tickets.create') }}">
+                <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>
+                <span class="topbar-new-label">New ticket</span>
+            </a>
+        {% endif %}
+
+        <details class="user-menu">
+            <summary class="user-menu-trigger">
+                <span class="avatar avatar-sm" aria-hidden="true">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                <span class="user-menu-text">
+                    <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                    <small>{{ role|replace({'_': ' '})|title }}</small>
+                </span>
+                <svg class="icon user-menu-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+            </summary>
+
+            <div class="user-menu-panel">
+                <div class="user-menu-head">
+                    <strong>{{ user.first_name }} {{ user.last_name }}</strong>
+                    <span>{{ user.email }}</span>
+                </div>
+
+                {% if can('settings.manage') %}
+                    <a href="{{ route('settings.show') }}">
+                        <svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>
+                        Workspace settings
+                    </a>
+                {% endif %}
+
+                {% if workspace.public_form_enabled %}
+                    <a href="{{ route('public.request.show.identifier', {identifier: workspace.slug}) }}">
+                        <svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
+                        Public request page
+                    </a>
+                {% endif %}
+
+                <form method="post" action="{{ route('logout') }}">
+                    {{ csrf_field() }}
+                    <button class="user-menu-signout" type="submit">
+                        <svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg>
+                        Sign out
+                    </button>
+                </form>
+            </div>
+        </details>
     </div>
 </header>
+
+<script src="{{ asset('assets/app.js') }}" defer></script>
 {% endblock %}
 
 {% block main_class %}app-main{% endblock %}

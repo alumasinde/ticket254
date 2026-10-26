@@ -9,7 +9,6 @@
         <h1 class="page-title">Tickets</h1>
         <p class="page-lede">{{ meta.total }} {{ meta.total == 1 ? 'request' : 'requests' }} in this view.</p>
     </div>
-    <a class="button" href="{{ route('tickets.create') }}">New ticket</a>
 </div>
 
 <form class="filters" method="get" action="{{ route('tickets.index') }}">

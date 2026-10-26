@@ -1,44 +1,51 @@
-{% extends 'layouts/base.twig' %}
+{% extends 'layouts/auth.twig' %}
 
 {% block title %}Sign in — {{ config('app.name') }}{% endblock %}
 
-{% block content %}
-<section class="auth">
-    <p class="eyebrow">Staff access</p>
+{% block auth_form %}
+<div class="auth-head">
+    <span class="auth-head-icon" aria-hidden="true"><svg class="icon"><use href="#i-user"/></svg></span>
+    <p class="auth-kicker">Staff access</p>
     <h1 class="auth-title">Sign in</h1>
     <p class="auth-lede">Use the email and password for your workspace account.</p>
+</div>
 
-    {% if errors %}
-        <div class="alert alert-error" role="alert">
-            <p>Please correct the highlighted fields.</p>
-            <ul>
-                {% for message in errors %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+{% if errors %}
+    <div class="alert alert-error" role="alert">
+        <p>Please correct the highlighted fields.</p>
+        <ul>
+            {% for message in errors %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
 
-    <form method="post" action="{{ route('login.store') }}" class="panel auth-panel">
-        {{ csrf_field() }}
+<form method="post" action="{{ route('login.store') }}" class="auth-form-panel">
+    {{ csrf_field() }}
 
-        <div class="field">
-            <label for="email">Email</label>
+    <div class="field auth-field">
+        <label for="email">Email <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-mail"/></svg>
             <input id="email" name="email" type="email" value="{{ old('email') }}"
-                   maxlength="254" autocomplete="email" required>
-            {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+                   placeholder="you@company.com" maxlength="254" autocomplete="email" required>
         </div>
+        {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+    </div>
 
-        <div class="field">
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password"
+    <div class="field auth-field">
+        <label for="password">Password <span class="auth-required" aria-hidden="true">*</span></label>
+        <div class="auth-input">
+            <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-lock"/></svg>
+            <input id="password" name="password" type="password" placeholder="Enter your password"
                    maxlength="255" autocomplete="current-password" required>
-            {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
         </div>
+        {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
+    </div>
 
-        <button class="button" type="submit">Sign in</button>
-    </form>
+    <button class="button auth-submit" type="submit">Sign in</button>
+</form>
 
-    <p class="auth-switch">New here? <a href="{{ route('register') }}">Create a workspace</a></p>
-</section>
+<p class="auth-switch">New here? <a href="{{ route('register') }}">Create a workspace</a></p>
 {% endblock %}

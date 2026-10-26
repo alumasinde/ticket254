@@ -3,130 +3,290 @@
 {% block title %}Dashboard — {{ workspace.name }}{% endblock %}
 
 {% block content %}
-<div class="page-head">
+{% set avg = dashboard.avg_resolution_hours %}
+{% set period_label = dashboard.period.key == 'today' ? 'Today' : (dashboard.period.key == '30d' ? 'Last 30 days' : 'Last 7 days') %}
+
+<div class="page-head dash-head">
     <div>
         <p class="eyebrow">Dashboard</p>
         <h1 class="page-title">Today at {{ workspace.name }}</h1>
         <p class="page-lede">Live queue health for the tickets you and your teams can see.</p>
     </div>
-    <a class="button" href="{{ route('tickets.create') }}">New ticket</a>
-</div>
 
-<div class="period-bar" role="group" aria-label="Resolution period">
-    <span class="period-label">Average resolution</span>
-    <a href="{{ route('app.home', {period: 'today'}) }}"{{ dashboard.period.key == 'today' ? ' aria-current="page"' : '' }}>Today</a>
-    <a href="{{ route('app.home', {period: '7d'}) }}"{{ dashboard.period.key == '7d' ? ' aria-current="page"' : '' }}>7 days</a>
-    <a href="{{ route('app.home', {period: '30d'}) }}"{{ dashboard.period.key == '30d' ? ' aria-current="page"' : '' }}>30 days</a>
-</div>
-
-<section class="stat-grid" aria-label="Queue totals">
-    <a class="stat" href="{{ route('tickets.index', {status: 'open'}) }}">
-        <span class="stat-label">Open</span>
-        <strong class="stat-value">{{ dashboard.counts.open }}</strong>
-        <span class="stat-note">Waiting for first action</span>
-    </a>
-    <a class="stat{{ dashboard.counts.unassigned > 0 ? ' stat-warn' : '' }}" href="{{ route('tickets.index', {unassigned: 1}) }}">
-        <span class="stat-label">Unassigned</span>
-        <strong class="stat-value">{{ dashboard.counts.unassigned }}</strong>
-        <span class="stat-note">No owner yet</span>
-    </a>
-    <a class="stat{{ dashboard.counts.overdue > 0 ? ' stat-danger' : '' }}" href="{{ route('tickets.index', {overdue: 1}) }}">
-        <span class="stat-label">Overdue</span>
-        <strong class="stat-value">{{ dashboard.counts.overdue }}</strong>
-        <span class="stat-note">Past the due time</span>
-    </a>
-    <div class="stat">
-        <span class="stat-label">Resolved today</span>
-        <strong class="stat-value">{{ dashboard.resolved_today }}</strong>
-        <span class="stat-note">{{ workspace.timezone }}</span>
-    </div>
-    <div class="stat">
-        <span class="stat-label">Average resolution</span>
-        <strong class="stat-value">
-            {% if dashboard.avg_resolution_hours is null %}
-                —
-            {% elseif dashboard.avg_resolution_hours < 24 %}
-                {{ dashboard.avg_resolution_hours }}h
-            {% else %}
-                {{ (dashboard.avg_resolution_hours / 24)|round(1) }}d
-            {% endif %}
-        </strong>
-        <span class="stat-note">{{ dashboard.period.key == 'today' ? 'Today' : (dashboard.period.key == '30d' ? 'Last 30 days' : 'Last 7 days') }}</span>
-    </div>
-</section>
-
-<div class="dashboard-grid">
-    <section class="panel">
-        <div class="panel-head">
-            <h2>Needs attention</h2>
-            <span class="tag">{{ dashboard.needs_attention|length }} shown</span>
+    <div class="dash-period">
+        <div class="dash-period-metric">
+            <span class="dash-period-label">Average resolution · {{ period_label }}</span>
+            <strong class="dash-period-value">
+                {% if avg is null %}
+                    —
+                {% elseif avg < 24 %}
+                    {{ avg }}h
+                {% else %}
+                    {{ (avg / 24)|round(1) }}d
+                {% endif %}
+            </strong>
         </div>
 
-        {% if dashboard.needs_attention %}
-            <ul class="attention-list">
-                {% for ticket in dashboard.needs_attention %}
-                    <li>
-                        <div class="attention-main">
-                            <a class="ticket-subject" href="{{ route('tickets.show', {ref: ticket.reference}) }}">{{ ticket.subject }}</a>
-                            <span class="ticket-requester">{{ ticket.reference }} · {{ ticket.team ? ticket.team.name : 'No team' }} · {{ ticket.assigned_user ? ticket.assigned_user.name : 'Unassigned' }}</span>
-                        </div>
-                        <div class="attention-flags">
-                            {% for reason in ticket.reasons %}
-                                <span class="badge badge-reason-{{ reason }}">
-                                    {%- if reason == 'overdue' -%}Overdue
-                                    {%- elseif reason == 'unassigned' -%}Unassigned
-                                    {%- else -%}No first reply
-                                    {%- endif -%}
-                                </span>
+        <div class="dash-period-links" role="group" aria-label="Average resolution period">
+            <a href="{{ route('app.home', {period: 'today'}) }}"{{ dashboard.period.key == 'today' ? ' aria-current="page"' : '' }}>Today</a>
+            <a href="{{ route('app.home', {period: '7d'}) }}"{{ dashboard.period.key == '7d' ? ' aria-current="page"' : '' }}>7 days</a>
+            <a href="{{ route('app.home', {period: '30d'}) }}"{{ dashboard.period.key == '30d' ? ' aria-current="page"' : '' }}>30 days</a>
+        </div>
+    </div>
+</div>
+
+<section class="dash-stats" aria-label="Queue totals">
+    <a class="dash-stat" href="{{ route('tickets.index', {status: 'open'}) }}">
+        <span class="dash-stat-icon dash-stat-open" aria-hidden="true">
+            <svg class="icon"><use href="#i-inbox"/></svg>
+        </span>
+        <span class="dash-stat-body">
+            <span class="dash-stat-label">Open tickets</span>
+            <strong class="dash-stat-value">{{ dashboard.counts.open }}</strong>
+            <span class="dash-stat-note">Waiting for first action</span>
+        </span>
+    </a>
+
+    <a class="dash-stat" href="{{ route('tickets.index', {unassigned: 1}) }}">
+        <span class="dash-stat-icon dash-stat-warn" aria-hidden="true">
+            <svg class="icon"><use href="#i-user"/></svg>
+        </span>
+        <span class="dash-stat-body">
+            <span class="dash-stat-label">Unassigned</span>
+            <strong class="dash-stat-value">{{ dashboard.counts.unassigned }}</strong>
+            <span class="dash-stat-note">No owner yet</span>
+        </span>
+    </a>
+
+    <a class="dash-stat" href="{{ route('tickets.index', {overdue: 1}) }}">
+        <span class="dash-stat-icon dash-stat-danger" aria-hidden="true">
+            <svg class="icon"><use href="#i-alert"/></svg>
+        </span>
+        <span class="dash-stat-body">
+            <span class="dash-stat-label">Overdue</span>
+            <strong class="dash-stat-value">{{ dashboard.counts.overdue }}</strong>
+            <span class="dash-stat-note">Past the due time</span>
+        </span>
+    </a>
+
+    <a class="dash-stat" href="{{ route('tickets.index', {status: 'resolved'}) }}">
+        <span class="dash-stat-icon dash-stat-ok" aria-hidden="true">
+            <svg class="icon"><use href="#i-check-circle"/></svg>
+        </span>
+        <span class="dash-stat-body">
+            <span class="dash-stat-label">Resolved today</span>
+            <strong class="dash-stat-value">{{ dashboard.resolved_today }}</strong>
+            <span class="dash-stat-note">Since midnight · {{ workspace.timezone }}</span>
+        </span>
+    </a>
+</section>
+
+<div class="dash-layout">
+    <div class="dash-main">
+        <section class="dash-panel" aria-labelledby="attention-title">
+            <div class="dash-panel-head">
+                <h2 id="attention-title">Needs attention</h2>
+                <a class="small-link" href="{{ route('tickets.index') }}">View all tickets</a>
+            </div>
+
+            {% if dashboard.needs_attention %}
+                <div class="dash-table-wrap">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Ticket</th>
+                                <th scope="col">Requester</th>
+                                <th scope="col">Owner</th>
+                                <th scope="col">Due</th>
+                                <th scope="col">Attention</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in dashboard.needs_attention %}
+                                <tr>
+                                    <td data-label="Ticket">
+                                        <a class="ticket-subject" href="{{ route('tickets.show', {ref: ticket.reference}) }}">{{ ticket.subject }}</a>
+                                        <span class="ticket-meta-line">
+                                            <a class="reference" href="{{ route('tickets.show', {ref: ticket.reference}) }}">{{ ticket.reference }}</a>
+                                            <span class="ticket-meta-dot">·</span>
+                                            <span>{{ ticket.team ? ticket.team.name : 'No team' }}</span>
+                                            <span class="ticket-meta-dot">·</span>
+                                            <span class="badge priority-{{ ticket.priority.code }}">{{ ticket.priority.label }}</span>
+                                        </span>
+                                    </td>
+                                    <td data-label="Requester">{{ ticket.requester.name }}</td>
+                                    <td data-label="Owner">
+                                        {% if ticket.assigned_user %}
+                                            <span class="owner-chip">
+                                                <span class="avatar avatar-xs" aria-hidden="true">{{ ticket.assigned_user.name|first|upper }}</span>
+                                                <span>{{ ticket.assigned_user.name }}</span>
+                                            </span>
+                                        {% else %}
+                                            <span class="owner-empty">Unassigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="Due">
+                                        {% if ticket.due_at %}
+                                            <span class="due-cell{{ ticket.is_overdue ? ' is-overdue' : '' }}">{{ ticket.due_at|date('j M, H:i', workspace.timezone) }}</span>
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="Attention">
+                                        <div class="flag-list">
+                                            {% for reason in ticket.reasons %}
+                                                <span class="badge badge-reason-{{ reason }}">
+                                                    {%- if reason == 'overdue' -%}Overdue
+                                                    {%- elseif reason == 'unassigned' -%}Unassigned
+                                                    {%- else -%}No first reply
+                                                    {%- endif -%}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
                             {% endfor %}
-                            {% if ticket.due_at %}
-                                <span class="tag">Due {{ ticket.due_at|date('j M, H:i', workspace.timezone) }}</span>
-                            {% endif %}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="muted">Nothing is overdue, unassigned or waiting on a first reply.</p>
-        {% endif %}
-    </section>
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="dash-empty">
+                    <span class="dash-empty-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#i-check-circle"/></svg>
+                    </span>
+                    <strong>Nothing needs attention</strong>
+                    <p>No overdue, unassigned or unanswered tickets right now.</p>
+                </div>
+            {% endif %}
+        </section>
 
-    <section class="panel">
-        <div class="panel-head">
-            <h2>Recent activity</h2>
-            <a class="small-link" href="{{ route('tickets.index') }}">All tickets</a>
-        </div>
+        <section class="dash-panel" aria-labelledby="status-title">
+            <div class="dash-panel-head">
+                <h2 id="status-title">Queue by status</h2>
+                <span class="tag">Active {{ dashboard.counts.active }}</span>
+            </div>
 
-        {% if dashboard.recent %}
-            <ul class="data-list">
-                {% for ticket in dashboard.recent %}
-                    <li>
-                        <span>
-                            <a class="ticket-subject" href="{{ route('tickets.show', {ref: ticket.reference}) }}">{{ ticket.subject }}</a>
-                            <span class="ticket-requester">{{ ticket.reference }} · {{ ticket.status.label }}</span>
-                        </span>
-                        <span class="tag">{{ ticket.updated_at ? ticket.updated_at|date('j M, H:i', workspace.timezone) : '—' }}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="muted">No ticket movement yet.</p>
+            <div class="status-grid">
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'open'}) }}">
+                    <span class="badge status-open">Open</span>
+                    <span class="status-pill-count">{{ dashboard.counts.open }}</span>
+                </a>
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'assigned'}) }}">
+                    <span class="badge status-assigned">Assigned</span>
+                    <span class="status-pill-count">{{ dashboard.counts.assigned }}</span>
+                </a>
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'in_progress'}) }}">
+                    <span class="badge status-in_progress">In progress</span>
+                    <span class="status-pill-count">{{ dashboard.counts.in_progress }}</span>
+                </a>
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'pending'}) }}">
+                    <span class="badge status-pending">Pending</span>
+                    <span class="status-pill-count">{{ dashboard.counts.pending }}</span>
+                </a>
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'resolved'}) }}">
+                    <span class="badge status-resolved">Resolved</span>
+                    <span class="status-pill-count">{{ dashboard.counts.resolved }}</span>
+                </a>
+                <a class="status-pill" href="{{ route('tickets.index', {status: 'closed'}) }}">
+                    <span class="badge status-closed">Closed</span>
+                    <span class="status-pill-count">{{ dashboard.counts.closed }}</span>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <aside class="dash-rail" aria-label="Shortcuts and recent activity">
+        {% set quick_visible = can('tickets.create') or can('members.manage') or can('teams.manage') or can('audit.view') %}
+        {% if quick_visible %}
+            <section class="dash-panel" aria-labelledby="quick-title">
+                <div class="dash-panel-head">
+                    <h2 id="quick-title">Quick actions</h2>
+                </div>
+
+                <div class="quick-list">
+                    {% if can('tickets.create') %}
+                        <a class="quick-action" href="{{ route('tickets.create') }}">
+                            <span class="quick-icon quick-icon-create" aria-hidden="true">
+                                <svg class="icon"><use href="#i-plus"/></svg>
+                            </span>
+                            <span class="quick-action-text">
+                                <strong>Create ticket</strong>
+                                <small>Log a request from a call or walk-in</small>
+                            </span>
+                        </a>
+                    {% endif %}
+
+                    {% if can('members.manage') %}
+                        <a class="quick-action" href="{{ route('members.index') }}">
+                            <span class="quick-icon quick-icon-invite" aria-hidden="true">
+                                <svg class="icon"><use href="#i-user-plus"/></svg>
+                            </span>
+                            <span class="quick-action-text">
+                                <strong>Invite a member</strong>
+                                <small>Add an agent to this workspace</small>
+                            </span>
+                        </a>
+                    {% endif %}
+
+                    {% if can('teams.manage') %}
+                        <a class="quick-action" href="{{ route('teams.index') }}">
+                            <span class="quick-icon quick-icon-team" aria-hidden="true">
+                                <svg class="icon"><use href="#i-users"/></svg>
+                            </span>
+                            <span class="quick-action-text">
+                                <strong>Manage teams</strong>
+                                <small>Route work to the right desk</small>
+                            </span>
+                        </a>
+                    {% endif %}
+
+                    {% if can('audit.view') %}
+                        <a class="quick-action" href="{{ route('audit.index') }}">
+                            <span class="quick-icon" aria-hidden="true">
+                                <svg class="icon"><use href="#i-clipboard"/></svg>
+                            </span>
+                            <span class="quick-action-text">
+                                <strong>Audit log</strong>
+                                <small>Review who changed what</small>
+                            </span>
+                        </a>
+                    {% endif %}
+                </div>
+            </section>
         {% endif %}
-    </section>
+
+        <section class="dash-panel" aria-labelledby="recent-title">
+            <div class="dash-panel-head">
+                <h2 id="recent-title">Recently updated</h2>
+                <a class="small-link" href="{{ route('tickets.index', {sort: '-updated_at'}) }}">View all</a>
+            </div>
+
+            {% if dashboard.recent %}
+                <div class="recent-list">
+                    {% for ticket in dashboard.recent %}
+                        <a class="recent-item" href="{{ route('tickets.show', {ref: ticket.reference}) }}">
+                            <span class="avatar avatar-sm" aria-hidden="true">{{ ticket.requester.name|first|upper }}</span>
+                            <span class="recent-body">
+                                <span class="recent-subject">{{ ticket.subject }}</span>
+                                <span class="recent-meta">{{ ticket.reference }}</span>
+                            </span>
+                            <span class="recent-side">
+                                <span class="badge status-{{ ticket.status.code }}">{{ ticket.status.label }}</span>
+                                <span class="recent-time">{{ ticket.updated_at ? ticket.updated_at|date('j M, H:i', workspace.timezone) : '—' }}</span>
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="dash-empty">
+                    <span class="dash-empty-icon" aria-hidden="true">
+                        <svg class="icon"><use href="#i-ticket"/></svg>
+                    </span>
+                    <strong>No ticket movement yet</strong>
+                    <p>New and updated tickets will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+    </aside>
 </div>
-
-<section class="panel">
-    <div class="panel-head">
-        <h2>Queue by status</h2>
-        <span class="tag">Active {{ dashboard.counts.active }}</span>
-    </div>
-    <div class="status-strip">
-        <a href="{{ route('tickets.index', {status: 'open'}) }}"><span class="badge status-open">Open</span> {{ dashboard.counts.open }}</a>
-        <a href="{{ route('tickets.index', {status: 'assigned'}) }}"><span class="badge status-assigned">Assigned</span> {{ dashboard.counts.assigned }}</a>
-        <a href="{{ route('tickets.index', {status: 'in_progress'}) }}"><span class="badge status-in_progress">In progress</span> {{ dashboard.counts.in_progress }}</a>
-        <a href="{{ route('tickets.index', {status: 'pending'}) }}"><span class="badge status-pending">Pending</span> {{ dashboard.counts.pending }}</a>
-        <a href="{{ route('tickets.index', {status: 'resolved'}) }}"><span class="badge status-resolved">Resolved</span> {{ dashboard.counts.resolved }}</a>
-        <a href="{{ route('tickets.index', {status: 'closed'}) }}"><span class="badge status-closed">Closed</span> {{ dashboard.counts.closed }}</a>
-    </div>
-</section>
 {% endblock %}
