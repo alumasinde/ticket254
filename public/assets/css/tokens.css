@@ -1,0 +1,98 @@
+/* Design tokens — the only :root in the system. */
+
+:root {
+    /* Surfaces */
+    --paper: #f6f5ef;
+    --paper-deep: #eeece4;
+    --surface: #fbfaf6;
+    --surface-raised: #ffffff;
+
+    /* Text */
+    --ink: #1e2a23;
+    --ink-soft: #3c4a42;
+    --muted: #5e6a63;
+    --faint: #8b948d;
+
+    /* Lines */
+    --rule: #d9d7cd;
+    --rule-strong: #c5c3b8;
+
+    /* Brand */
+    --accent: #14532d;
+    --accent-hover: #0f3f23;
+    --accent-press: #0b3019;
+    --accent-soft: #e3ece5;
+    --accent-line: #c4d6c8;
+
+    /* Feedback */
+    --danger: #8a2c1f;
+    --danger-hover: #6d2117;
+    --danger-soft: #f8ece9;
+    --danger-line: #e2c7c0;
+    --warning: #7a4b09;
+    --warning-soft: #fdf1dc;
+
+    /* Workspace shell */
+    --sidebar-w: 248px;
+    --sidebar-bg: #102a1d;
+    --sidebar-raised: #173a29;
+    --sidebar-active: #1e4a33;
+    --sidebar-line: #264b36;
+    --sidebar-text: #c3d2c7;
+    --sidebar-muted: #89a291;
+
+    /* Auth brand panel */
+    --brand-deep: #102a1d;
+    --brand-raised: #173a29;
+    --brand-line: #2a4a37;
+    --brand-ink: #eef4ef;
+    --brand-muted: #a3b8aa;
+    --brand-accent: #9dc4aa;
+
+    /* Type */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --text-xs: 0.75rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-md: 1.0625rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 1.9rem;
+    --text-3xl: 2.4rem;
+
+    /* Spacing */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Radii */
+    --radius-sm: 5px;
+    --radius: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-pill: 999px;
+
+    /* Elevation */
+    --shadow-xs: 0 1px 2px rgba(16, 42, 29, 0.06);
+    --shadow-sm: 0 1px 3px rgba(16, 42, 29, 0.08), 0 1px 2px rgba(16, 42, 29, 0.04);
+    --shadow-md: 0 10px 28px -16px rgba(16, 42, 29, 0.28);
+
+    /* Layout */
+    --max: 960px;
+    --control-h: 44px;
+    --control-h-lg: 48px;
+    --auth-form-w: 420px;
+    --auth-form-w-wide: 484px;
+
+    /* Focus */
+    --focus-ring: 0 0 0 3px rgba(20, 83, 45, 0.14);
+}

@@ -1,18 +1,16 @@
 {% extends 'layouts/auth.twig' %}
 
-{% block title %}Sign in — {{ config('app.name') }}{% endblock %}
+{% block title %}Sign in · {{ config('app.name') }}{% endblock %}
 
 {% block auth_form %}
-<div class="auth-head">
-    <span class="auth-head-icon" aria-hidden="true"><svg class="icon"><use href="#i-user"/></svg></span>
-    <p class="auth-kicker">Staff access</p>
-    <h1 class="auth-title">Sign in</h1>
-    <p class="auth-lede">Use the email and password for your workspace account.</p>
-</div>
+<header class="auth-head">
+    <h1 class="auth-title" id="auth-title">Sign in</h1>
+    <p class="auth-lede">Use your work email and password to continue.</p>
+</header>
 
 {% if errors %}
-    <div class="alert alert-error" role="alert">
-        <p>Please correct the highlighted fields.</p>
+    <div class="alert auth-alert" role="alert">
+        <p>Please check your details and try again.</p>
         <ul>
             {% for message in errors %}
                 <li>{{ message }}</li>
@@ -25,27 +23,38 @@
     {{ csrf_field() }}
 
     <div class="field auth-field">
-        <label for="email">Email <span class="auth-required" aria-hidden="true">*</span></label>
-        <div class="auth-input">
+        <label for="email">Email</label>
+        <div class="auth-input{{ errors.email is defined ? ' is-invalid' }}">
             <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-mail"/></svg>
             <input id="email" name="email" type="email" value="{{ old('email') }}"
-                   placeholder="you@company.com" maxlength="254" autocomplete="email" required>
+                   maxlength="254" autocomplete="email" autocapitalize="none" spellcheck="false"
+                   {% if errors.email is defined %}aria-invalid="true" aria-describedby="email-error"{% endif %} required>
         </div>
-        {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+        {% if errors.email is defined %}<p class="field-error" id="email-error">{{ errors.email }}</p>{% endif %}
     </div>
 
     <div class="field auth-field">
-        <label for="password">Password <span class="auth-required" aria-hidden="true">*</span></label>
-        <div class="auth-input">
+        <label for="password">Password</label>
+        <div class="auth-input auth-input-password{{ errors.password is defined ? ' is-invalid' }}">
             <svg class="icon auth-input-icon" aria-hidden="true"><use href="#i-lock"/></svg>
-            <input id="password" name="password" type="password" placeholder="Enter your password"
-                   maxlength="255" autocomplete="current-password" required>
+            <input id="password" name="password" type="password" maxlength="255"
+                   autocomplete="current-password" data-caps-warning="password-caps"
+                   {% if errors.password is defined %}aria-invalid="true" aria-describedby="password-error"{% endif %} required>
+            <button class="auth-reveal" type="button" data-password-toggle="password"
+                    aria-label="Show password" aria-pressed="false" title="Show password">
+                <svg class="icon auth-reveal-show" aria-hidden="true"><use href="#i-eye"/></svg>
+                <svg class="icon auth-reveal-hide" aria-hidden="true"><use href="#i-eye-off"/></svg>
+            </button>
         </div>
-        {% if errors.password is defined %}<p class="field-error">{{ errors.password }}</p>{% endif %}
+        <p class="auth-caps" id="password-caps" hidden>Caps Lock is on.</p>
+        {% if errors.password is defined %}<p class="field-error" id="password-error">{{ errors.password }}</p>{% endif %}
     </div>
 
     <button class="button auth-submit" type="submit">Sign in</button>
 </form>
 
-<p class="auth-switch">New here? <a href="{{ route('register') }}">Create a workspace</a></p>
+<div class="auth-alt">
+    <p class="auth-switch">New to {{ config('app.name') }}? <a href="{{ route('register') }}">Create a workspace</a></p>
+    <p class="auth-meta">Access is managed by your workspace owner.</p>
+</div>
 {% endblock %}

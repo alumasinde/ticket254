@@ -1,5 +1,9 @@
 {% extends 'layouts/base.twig' %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+{% endblock %}
+
 {% block body_class %}app-body{% endblock %}
 
 {% block header %}
@@ -203,7 +207,7 @@
     </div>
 </header>
 
-<script src="{{ asset('assets/app.js') }}" defer></script>
+<script src="{{ asset('assets/js/app.js') }}" defer></script>
 {% endblock %}
 
 {% block main_class %}app-main{% endblock %}

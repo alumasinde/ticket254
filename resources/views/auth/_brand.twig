@@ -2,7 +2,7 @@
     <div class="auth-brand-inner">
         <a class="auth-brand-link" href="{{ route('home') }}">
             <span class="auth-brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><use href="#i-ticket"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-ticket"/></svg>
             </span>
             <span class="auth-brand-text">
                 <span class="auth-brand-name">{{ config('app.name') }}</span>
@@ -10,40 +10,35 @@
             </span>
         </a>
 
-        <h2 class="auth-brand-headline">Better support<br>for your business</h2>
-        <p class="auth-brand-lede">Manage customer requests, resolve issues and keep your team organised — all in one place.</p>
+        <div class="auth-brand-copy">
+            <h2 class="auth-brand-headline">Every request<br>gets an owner.</h2>
+            <p class="auth-brand-lede">One shared queue for customer requests, team handoffs and response times.</p>
+        </div>
 
-        <ul class="auth-benefits">
+        <ul class="auth-points">
             <li>
-                <span class="auth-benefit-icon" aria-hidden="true"><svg class="icon"><use href="#i-ticket"/></svg></span>
-                <span class="auth-benefit-text">
-                    <strong>Track tickets</strong>
-                    <span>Never miss a request. Keep everything organised.</span>
+                <span class="auth-point-icon" aria-hidden="true"><svg class="icon"><use href="#i-inbox"/></svg></span>
+                <span class="auth-point-text">
+                    <strong>One shared queue</strong>
+                    <span>Requests, replies and notes in one place.</span>
                 </span>
             </li>
             <li>
-                <span class="auth-benefit-icon" aria-hidden="true"><svg class="icon"><use href="#i-users"/></svg></span>
-                <span class="auth-benefit-text">
-                    <strong>Work together</strong>
-                    <span>Invite your team and get more done.</span>
+                <span class="auth-point-icon" aria-hidden="true"><svg class="icon"><use href="#i-user"/></svg></span>
+                <span class="auth-point-text">
+                    <strong>Clear ownership</strong>
+                    <span>Every ticket has an owner and a due time.</span>
                 </span>
             </li>
             <li>
-                <span class="auth-benefit-icon" aria-hidden="true"><svg class="icon"><use href="#i-shield"/></svg></span>
-                <span class="auth-benefit-text">
-                    <strong>Secure &amp; reliable</strong>
-                    <span>Your data stays inside your workspace.</span>
-                </span>
-            </li>
-            <li>
-                <span class="auth-benefit-icon" aria-hidden="true"><svg class="icon"><use href="#i-chart"/></svg></span>
-                <span class="auth-benefit-text">
-                    <strong>Built for Kenya</strong>
-                    <span>Simple, practical and locally supported.</span>
+                <span class="auth-point-icon" aria-hidden="true"><svg class="icon"><use href="#i-timer"/></svg></span>
+                <span class="auth-point-text">
+                    <strong>Visible response times</strong>
+                    <span>See what is waiting and what is late.</span>
                 </span>
             </li>
         </ul>
 
-        <p class="auth-brand-foot">Local support. Real people.</p>
+        <p class="auth-brand-foot">Nairobi, Kenya <span aria-hidden="true">·</span> Built for local teams</p>
     </div>
 </aside>

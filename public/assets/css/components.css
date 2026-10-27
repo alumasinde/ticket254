@@ -1,0 +1,393 @@
+/* Shared components — used by public, workspace and auth surfaces. */
+
+/* Panels */
+
+.panel {
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.panel h2 {
+    margin: 0 0 0.75rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Fields */
+
+.field {
+    margin-bottom: 1rem;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    min-height: var(--control-h);
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+.field textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.field-hint {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.field-error {
+    margin: 0.35rem 0 0;
+    color: var(--danger);
+    font-size: 0.82rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1rem;
+}
+
+.optional {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+/* Alerts and flash messages */
+
+.alert {
+    margin: 0 0 1.1rem;
+    padding: 0.8rem 0.95rem;
+    border: 1px solid var(--danger-line);
+    border-radius: var(--radius);
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 0.88rem;
+}
+
+.alert p {
+    margin: 0;
+}
+
+.alert ul {
+    margin: 0.35rem 0 0;
+    padding-left: 1.1rem;
+}
+
+.alert li + li {
+    margin-top: 0.15rem;
+}
+
+.flash {
+    max-width: 680px;
+    margin: 1.25rem 0 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius);
+    font-size: 0.88rem;
+}
+
+.flash-success {
+    border: 1px solid var(--accent-line);
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.flash-error {
+    border: 1px solid var(--danger-line);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+/* Buttons */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--control-h);
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.94rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: var(--accent-hover);
+}
+
+.button-quiet {
+    border-color: var(--rule);
+    background: transparent;
+    color: var(--ink);
+}
+
+.button-quiet:hover {
+    background: var(--paper-deep);
+}
+
+.link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.link-button:hover {
+    color: var(--ink);
+}
+
+.link-button[disabled] {
+    color: #a9a69c;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+/* Page heading used on public tracking and workspace pages */
+
+.page-title {
+    margin: 0 0 0.35rem;
+    font-size: clamp(1.55rem, 3.5vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+}
+
+/* Ticket labels */
+
+.reference {
+    font-family: var(--font-mono);
+    font-size: 0.79rem;
+    white-space: nowrap;
+}
+
+.ticket-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.12rem 0.45rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper-deep);
+    color: var(--muted);
+    font-size: 0.71rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.status-open {
+    border-color: #c9d6e6;
+    background: #e8eef7;
+    color: #23456f;
+}
+
+.status-assigned {
+    border-color: #d4cdea;
+    background: #ece9f6;
+    color: #45336f;
+}
+
+.status-in_progress {
+    border-color: #ecd4a6;
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.status-pending {
+    border-color: #ded8c4;
+    background: #f1eee4;
+    color: #5d5744;
+}
+
+.status-resolved {
+    border-color: var(--accent-line);
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.status-closed {
+    border-color: #d2d2cb;
+    background: #e9e9e6;
+    color: #4a4a45;
+}
+
+.priority-low {
+    border-color: #d6d6cf;
+    background: #f0f0ec;
+    color: #57574f;
+}
+
+.priority-normal {
+    border-color: #c9d6e6;
+    background: #eef2f7;
+    color: #32506e;
+}
+
+.priority-high {
+    border-color: #ecd4a6;
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.priority-urgent {
+    border-color: var(--danger-line);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.badge-overdue {
+    border-color: var(--danger-line);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.badge-internal {
+    border-color: #d8d0b6;
+    background: #efe9d8;
+    color: #5d5230;
+}
+
+.due-overdue {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* Conversation */
+
+.message-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.message {
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--rule);
+}
+
+.message:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.message-internal {
+    margin: 0.5rem 0;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-left: 3px solid #b9ae8b;
+    border-radius: var(--radius);
+    background: #f3f1ea;
+}
+
+.message-internal:first-child {
+    margin-top: 0;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--rule);
+}
+
+.message-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.message-author {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.message-time {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.message-body {
+    margin: 0.35rem 0 0;
+    overflow-wrap: anywhere;
+    font-size: 0.92rem;
+    white-space: pre-wrap;
+}
+
+.message-form {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+}
+
+.message-form .field textarea {
+    min-height: 96px;
+}
+
+.message-mine .message-author {
+    color: var(--accent);
+}
+
+/* Utilities */
+
+.muted {
+    color: var(--muted);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 560px) {
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
